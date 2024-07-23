@@ -7,6 +7,10 @@ function agregar_scripts_y_estilos() {
 
     wp_enqueue_style( 'tailwind', get_template_directory_uri() . '/src/output.css', array() );
     wp_enqueue_script('instascan', get_template_directory_uri() . '/src/instascan.min.js', array() );
+
+    wp_enqueue_script('adapter', 'https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/3.3.3/adapter.min.js', array() );
+    
+
     wp_enqueue_style('mi-tema-estilos', get_stylesheet_uri());
     // Agregar estilos
     wp_enqueue_style('font-awesome', 'https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css');
@@ -63,5 +67,18 @@ function custom_login_redirect( $redirect_to, $request, $user ) {
 }
 add_filter( 'login_redirect', 'custom_login_redirect', 10, 3 );
 
+
+
+
+
+
+
+function restrict_access_to_logged_in_users() {
+    if ( !is_user_logged_in() && !is_page('wp-login.php') && !is_admin() ) {
+        wp_redirect( wp_login_url() );
+        exit;
+    }
+}
+add_action( 'template_redirect', 'restrict_access_to_logged_in_users' );
 
 ?>
