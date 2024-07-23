@@ -28,8 +28,7 @@ if ( current_user_can( 'editor' ) ) {
 
 </div>
 
-<?php
-}?>
+
 
 <script>
     var xValues2 = ["Italy", "France", "Spain", "USA", "Argentina"];
@@ -94,6 +93,8 @@ if ( current_user_can( 'editor' ) ) {
     });
 </script>
 
+<?php
+}?>
 </body>
 
 </html>
