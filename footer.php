@@ -4,6 +4,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
 
 
+<?php
+if ( current_user_can( 'editor' ) ) {
+?>
+      
 
 
 <div class="p-5  grid md:grid-cols-2 grid-cols-1 md:gap-10 gap-2 justify-between">
@@ -24,7 +28,8 @@
 
 </div>
 
-
+<?php
+}?>
 
 <script>
     var xValues2 = ["Italy", "France", "Spain", "USA", "Argentina"];
