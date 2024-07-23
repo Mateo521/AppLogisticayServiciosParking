@@ -8,8 +8,8 @@ function agregar_scripts_y_estilos() {
     wp_enqueue_style( 'tailwind', get_template_directory_uri() . '/src/output.css', array() );
     wp_enqueue_script('instascan', get_template_directory_uri() . '/src/instascan.min.js', array() );
 
-    wp_enqueue_script('adapter', 'https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/3.3.3/adapter.min.js', array() );
-    
+    wp_enqueue_script('pako', 'https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.11/pako.min.js', array() );
+ 
 
     wp_enqueue_style('mi-tema-estilos', get_stylesheet_uri());
     // Agregar estilos

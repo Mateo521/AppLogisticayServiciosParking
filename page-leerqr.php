@@ -16,6 +16,42 @@ get_header();
 
 
     <script src="https://cdn.rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
+
+
+
+
+
+  
+    <script>
+ function base64Decode(base64) {
+    return atob(base64);
+}
+
+function decodeSAML() {
+    var samlResponse = document.getElementById('samlInput').value;
+    var decoded = base64Decode(samlResponse);
+    document.getElementById('output').textContent = decoded;
+}
+    </script>
+
+
+    <h1>Decodificar SAML</h1>
+    <textarea id="samlInput" rows="10" cols="100" placeholder="Pega tu texto SAML codificado en Base64 aquí"></textarea>
+    <br>
+    <button onclick="decodeSAML()">Decodificar</button>
+    <h2>Resultado:</h2>
+    <pre id="output"></pre>
+
+<!-- 
+    
+[0] personal docente    ====== WzBdIHBlcnNvbmFsIGRvY2VudGU=
+[1] personal no docente ====== WzFdIHBlcnNvbmFsIG5vIGRvY2VudGU=
+[2] alumnos unsl        ====== WzJdIGFsdW1ub3MgdW5zbA==
+[3] visitas unsl        ====== WzNdIHZpc2l0YXMgdW5zbA==
+
+-->
+
+
     <script>
         async function initCamera() {
             try {
@@ -58,7 +94,7 @@ get_header();
                 if (code) {
                     console.log('QR Code detected:', code.data);
                     document.getElementById('text').value = code.data;
-                    // Perform desired actions with code.data (QR code information).
+                
                 }
                 requestAnimationFrame(scan);
             }
