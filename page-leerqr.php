@@ -7,66 +7,191 @@ get_header();
 
 
 <p class="text-center py-4">Leer QR</p>
-
-
-    <video class="w-full p-5 rounded-lg" id="cameraFeed" width="320" height="240" autoplay></video>
+<div class="flex justify-center   p-5">
+    <div class="max-w-screen-lg w-full rounded-xl overflow-hidden">
+        <div class="text-center" id="error-message"></div>
+        <video class="w-full" id="cameraFeed" width="320" height="240" autoplay></video>
+    </div>
+</div>
 <div class="flex w-full justify-center">
-   
 
 
 
-
-    <form class="flex items-center max-w-sm mx-auto">   
-    <label for="simple-search" class="sr-only">Search</label>
-    <div class="relative w-full">
-        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5v10M3 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm0 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm0 0V6a3 3 0 0 0-3-3H9m1.5-2-2 2 2 2"/>
+    <div class="flex flex-wrap gap-5 p-2 justify-center">
+        <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">Seleccione la opción... <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4" />
             </svg>
+        </button>
+
+        <!-- Dropdown menu -->
+        <div id="dropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
+                <li>
+                    <a href="#" data-value="1" class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque III</a>
+                </li>
+                <li>
+                    <a href="#" data-value="2" class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque IV</a>
+                </li>
+                <li>
+                    <a href="#" data-value="3" class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Subsuelo y Rectorado</a>
+                </li>
+                <li>
+                    <a href="#" data-value="4" class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Chacabuco y Pedernera</a>
+                </li>
+            </ul>
         </div>
-        <input type="text" id="text" readonly id="simple-search" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search branch name..." required />
+
+        <form class="flex items-center max-w-sm mx-auto" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+            <label for="simple-search" class="sr-only">Search</label>
+            <div class="relative w-full">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                    <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5v10M3 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm0 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm12 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm0 0V6a3 3 0 0 0-3-3H9m1.5-2-2 2 2 2" />
+                    </svg>
+                </div>
+                <input type="text" id="text" readonly class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Categorías..." required />
+                <input type="hidden" id="categoria_index" name="categoria_index" value="">
+                <input type="hidden" id="estacionamiento_index" name="estacionamiento_index" value=""> <!-- Asegúrate de que este campo esté aquí -->
+                <input type="hidden" name="action" value="insert_ingreso">
+
+            </div>
+            <div>
+
+                <button id="ingreso-button" type="submit" class="p-2.5 ms-2 text-sm font-medium text-white bg-blue-700 rounded-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 hidden">
+                    <span>Ingreso</span>
+                </button>
+
+                <button id="esperando-button" disabled type="button" class="text-white mx-3 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 inline-flex items-center">
+                    <svg aria-hidden="true" role="status" class="inline w-4 h-4 me-3 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB" />
+                        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor" />
+                    </svg>
+                    Esperando...
+                </button>
+
+            </div>
+
+
+
+        </form>
+
+
+
+
+
+
+
+
     </div>
-    <button type="submit" class="p-2.5 ms-2 text-sm font-medium text-white bg-blue-700 rounded-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-     
-        <span>Ingreso</span>
+
+
+
+</div>
+
+<div class="flex justify-center" style="padding:35px 0 0;">
+
+<button id="egreso-button" type="submit" class="p-2.5 hidden ms-2 text-sm font-medium bg-white rounded-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+        <span>Egreso</span>
     </button>
-</form>
+
+    <button id="esperando-egreso-button" disabled type="button" class="py-2.5 px-5 me-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center">
+        <svg aria-hidden="true" role="status" class="inline w-4 h-4 me-3 text-gray-200 animate-spin dark:text-gray-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="#1C64F2" />
+        </svg>
+        Esperando...
+    </button>
+    </form>
+</div>
+<script src="https://cdn.rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
 
 
-    </div>
-
-
-    <script src="https://cdn.rawgit.com/cozmo/jsQR/master/dist/jsQR.js"></script>
 
 
 
 
+<script>
+             document.addEventListener('DOMContentLoaded', function() {
+            const dropdownItems = document.querySelectorAll('.dropdown-item');
+            const dropdownButton = document.getElementById('dropdownDefaultButton');
+            
+            const estacionamientoInput = document.getElementById('estacionamiento_index');
+            const savedEstacionamiento = localStorage.getItem('selectedEstacionamiento'); // Obtiene la última selección guardada
 
-  
-    <script>
- function base64Decode(base64) {
-    return atob(base64);
-}
-    </script>
+            // Función para actualizar el texto del botón y el valor del campo oculto
+            function updateDropdown(selectionText, selectionValue) {
+                dropdownButton.innerHTML = `${selectionText} <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+            </svg>`;
+                estacionamientoInput.value = selectionValue;
+                localStorage.setItem('selectedEstacionamiento', selectionValue); // Guarda la selección en localStorage
+            }
 
+            // Inicializa el botón con la opción seleccionada al cargar la página
+            if (savedEstacionamiento) {
+                dropdownItems.forEach(item => {
+                    if (item.getAttribute('data-value') === savedEstacionamiento) {
+                        updateDropdown(item.textContent.trim(), savedEstacionamiento);
+                    }
+                });
+            } else {
+                // Si no hay selección guardada, establece la primera opción como predeterminada
+                const firstItem = dropdownItems[0];
+                if (firstItem) {
+                    updateDropdown(firstItem.textContent.trim(), firstItem.getAttribute('data-value'));
+                }
+            }
 
-    <!--h1>Decodificar SAML</h1>
-    <textarea id="samlInput" rows="10" cols="100" placeholder="Pega tu texto SAML codificado en Base64 aquí"></textarea>
-    <br>
-    <button onclick="decodeSAML()">Decodificar</button>
-    <h2>Resultado:</h2>
-    <pre id="output"></pre-->
-<!-- 
-    
-[0] personal docente    ====== WzBdIHBlcnNvbmFsIGRvY2VudGU=
-[1] personal no docente ====== WzFdIHBlcnNvbmFsIG5vIGRvY2VudGU=
-[2] alumnos unsl        ====== WzJdIGFsdW1ub3MgdW5zbA==
-[3] visitas unsl        ====== WzNdIHZpc2l0YXMgdW5zbA==
+            // Maneja la selección de la opción
+            dropdownItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const estacionamiento = this.getAttribute('data-value');
+                    updateDropdown(this.textContent.trim(), estacionamiento);
+                    document.getElementById('dropdown').classList.add('hidden');
+                });
+            });
 
--->
+            // Toggle dropdown visibility
+            dropdownButton.addEventListener('click', function() {
+                document.getElementById('dropdown').classList.toggle('hidden');
+            });
 
+            // Maneja la visibilidad de los botones según el valor del campo de texto
+            const inputField = document.getElementById('text');
+            const ingresoButton = document.getElementById('ingreso-button');
+            const esperandoButton = document.getElementById('esperando-button');
+            const egresoButton = document.getElementById('egreso-button');
+            const esperandoEgresoButton = document.getElementById('esperando-egreso-button');
 
-    <script>
+            function updateButtonVisibility() {
+                if (inputField.value.trim() === '') {
+                    ingresoButton.classList.add('hidden');
+                    esperandoButton.classList.remove('hidden');
+                    egresoButton.classList.add('hidden');
+                    esperandoEgresoButton.classList.remove('hidden');
+                } else {
+                    esperandoButton.classList.add('hidden');
+                    ingresoButton.classList.remove('hidden');
+                    esperandoEgresoButton.classList.add('hidden');
+                    egresoButton.classList.remove('hidden');
+                }
+            }
+
+            inputField.addEventListener('input', updateButtonVisibility);
+
+            // Inicializa el estado de los botones al cargar la página
+            updateButtonVisibility();
+        });
+
+        function base64Decode(base64) {
+            try {
+                return atob(base64);
+            } catch (e) {
+                document.getElementById('text').value = 'QR desconocido...';
+                return base64;
+            }
+        }
+
         async function initCamera() {
             try {
                 const devices = await navigator.mediaDevices.enumerateDevices();
@@ -75,6 +200,9 @@ get_header();
 
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
+                        facingMode: {
+                            exact: 'environment'
+                        },
                         deviceId: rearCamera.deviceId
                     }
                 });
@@ -85,12 +213,12 @@ get_header();
                     scanQRCode(stream);
                 });
 
-                // Close the camera stream when leaving the page.
                 window.addEventListener('beforeunload', () => {
                     stream.getTracks().forEach(track => track.stop());
                 });
             } catch (error) {
-                console.error('Error accessing camera:', error);
+                const errorMessageElement = document.getElementById('error-message');
+                errorMessageElement.innerHTML = "No se encontró una cámara.";
             }
         }
 
@@ -106,13 +234,52 @@ get_header();
                 const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
                 if (code) {
-                    console.log('QR Code detected:', code.data);
-
                     var decoded = base64Decode(code.data);
-                    document.getElementById('text').textContent = decoded;
 
-              /*      document.getElementById('text').value = code.data;*/
-                
+                    const categorias = ["Personal docente", "Personal no docente", "Alumno", "Visita"];
+
+                    let k = decoded.substring(1, 2);
+                    let index = parseInt(k, 10);
+                    console.log('Código:', k);
+                    let m = "";
+                    switch (index) {
+                        case 0:
+                            m = categorias[0];
+                            break;
+                        case 1:
+                            m = categorias[1];
+                            break;
+                        case 2:
+                            m = categorias[2];
+                            break;
+                        case 3:
+                            m = categorias[3];
+                            break;
+                        default:
+                            m = "Categoría desconocida";
+                            break;
+                    }
+
+                    document.getElementById('categoria_index').value = index;
+                    document.getElementById('text').value = m;
+
+                    // Actualiza la visibilidad de los botones después de escanear el QR
+                    const ingresoButton = document.getElementById('ingreso-button');
+                    const esperandoButton = document.getElementById('esperando-button');
+                    const egresoButton = document.getElementById('egreso-button');
+                    const esperandoEgresoButton = document.getElementById('esperando-egreso-button');
+
+                    if (document.getElementById('text').value.trim() === '') {
+                        ingresoButton.classList.add('hidden');
+                        esperandoButton.classList.remove('hidden');
+                        egresoButton.classList.add('hidden');
+                        esperandoEgresoButton.classList.remove('hidden');
+                    } else {
+                        esperandoButton.classList.add('hidden');
+                        ingresoButton.classList.remove('hidden');
+                        esperandoEgresoButton.classList.add('hidden');
+                        egresoButton.classList.remove('hidden');
+                    }
                 }
                 requestAnimationFrame(scan);
             }
@@ -120,10 +287,11 @@ get_header();
             scan();
         }
 
+        // Inicializa la cámara al cargar la página
         initCamera();
-    </script>
+</script>
 
-  
+
 <?
 
 get_footer();

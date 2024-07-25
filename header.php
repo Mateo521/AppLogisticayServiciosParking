@@ -42,7 +42,7 @@
         </li>
      
         <?php
-if ( current_user_can( 'editor' ) ) {
+if ( current_user_can( 'editor' ) || current_user_can( 'administrator' ) ) {
 ?>
 
         <li>
