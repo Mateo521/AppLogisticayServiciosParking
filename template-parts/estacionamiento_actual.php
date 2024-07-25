@@ -142,16 +142,16 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
             </ul>
         </div>
     <?php endif; ?>
-</div>
+</div> 
 
 <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
     <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
-                <th scope="col" class="px-6 py-3">ID</th>
-                <th scope="col" class="px-6 py-3">Estacionamiento</th>
-                <th scope="col" class="px-6 py-3">Categoría</th>
-                <th scope="col" class="px-6 py-3">Horario de ingreso</th>
+                <th scope="col" class="md:px-6 px-2 py-3">ID</th>
+                <th scope="col" class="md:px-6 px-2 py-3">Estacionamiento</th>
+                <th scope="col" class="md:px-6 px-2 py-3">Categoría</th>
+                <th scope="col" class="md:px-6 px-2 py-3">Horario de ingreso</th>
             </tr>
         </thead>
         <tbody>

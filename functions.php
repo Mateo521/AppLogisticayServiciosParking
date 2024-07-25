@@ -6,6 +6,11 @@ function agregar_scripts_y_estilos() {
    -//  wp_enqueue_style('flowbite', 'https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css');
 
     wp_enqueue_style( 'tailwind', get_template_directory_uri() . '/src/output.css', array() );
+
+//Temporal Flowbite
+    wp_enqueue_style( 'flowbite', 'https://cdn.jsdelivr.net/npm/flowbite@2.4.1/dist/flowbite.min.css', array() );
+    
+
     wp_enqueue_script('instascan', get_template_directory_uri() . '/src/instascan.min.js', array() );
 
     wp_enqueue_script('pako', 'https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.11/pako.min.js', array() );

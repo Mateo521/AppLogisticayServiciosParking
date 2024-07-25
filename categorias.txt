@@ -2,3 +2,21 @@
 2 Bloque IV
 3 Subsuelo y Rectorado
 4 Chacabuco y Pedernera
+
+
+Pendiente:
+Posibilidad de cargar vehiculo manualmente
+
+Posibilidad de editar/eliminar ingreso de vehiculo en tabla
+
+Intervalo de fechas en tabla de egresos
+
+Boton de egreso en /leerqr que elimine el primer vehiculo (mas antiguo) de tabla de ingresos, y se inserte en egresos con misma id de ingreso.
+
+Edicion de login utilizando formato index.html
+
+Texto en grafico de torta (cantidad total de vehiculos, cantidad total de vehiculos de dicha categoria )
+
+Posibilidad de agregar una condicion extra a la consulta SQL para buscar tambien por categoria
+
+Imprimir en codificaciones, Los valores en string

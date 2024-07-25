@@ -32,7 +32,7 @@ if ($selected_estacionamiento) {
 }
 $total_e_items = $wpdb->get_var($count_query);
 ?>
-
+ 
 
 <p class="mb-3 px-3 pt-12 text-gray-500 dark:text-gray-400"> <strong class="font-semibold text-gray-900 dark:text-white">Egresos</strong>.</p>
 
@@ -41,10 +41,10 @@ $total_e_items = $wpdb->get_var($count_query);
     <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
-                <th scope="col" class="px-6 py-3">ID</th>
-                <th scope="col" class="px-6 py-3">Estacionamiento</th>
-                <th scope="col" class="px-6 py-3">Categoría</th>
-                <th scope="col" class="px-6 py-3">Horario de egreso</th>
+                <th scope="col" class="md:px-6 px-2 py-3">ID</th>
+                <th scope="col" class="md:px-6 px-2 py-3">Estacionamiento</th>
+                <th scope="col" class="md:px-6 px-2 py-3">Categoría</th>
+                <th scope="col" class="md:px-6 px-2 py-3">Horario de egreso</th>
             </tr>
         </thead>
         <tbody>
@@ -102,7 +102,7 @@ $total_e_items = $wpdb->get_var($count_query);
 
 
 
-<div class="max-w-sm w-full bg-white rounded-lg shadow dark:bg-gray-800">
+<div class="p-5 w-full bg-white rounded-lg shadow dark:bg-gray-800">
   <div class="flex justify-between p-4 md:p-6 pb-0 md:pb-0">
     <div>
       <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">$12,423</h5>
