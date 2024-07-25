@@ -205,4 +205,67 @@ add_filter('query_vars', 'custom_query_vars');
 
 
 
+// Agregar una acción para el Cron Job
+add_action('wp', 'setup_transfer_cron_job');
+
+function setup_transfer_cron_job() {
+    if (!wp_next_scheduled('transfer_ingresos_event')) {
+        wp_schedule_event(strtotime('23:59:00'), 'daily', 'transfer_ingresos_event');
+    }
+}
+
+// La función que se ejecutará
+add_action('transfer_ingresos_event', 'transfer_ingresos_to_egresos');
+
+function transfer_ingresos_to_egresos() {
+    global $wpdb;
+    $table_ingresos = $wpdb->prefix . 'parking_ingresos';
+    $table_egresos = $wpdb->prefix . 'parking_egresos';
+
+    // Verificar si hay registros para transferir
+    $ingresos = $wpdb->get_results("SELECT * FROM $table_ingresos", ARRAY_A);
+
+    if (!empty($ingresos)) {
+         // Asegurarse de que las claves del arreglo coincidan con los nombres de las columnas
+        foreach ($ingresos as $ingreso) {
+            $data = array(
+                'id' => $ingreso['id'],
+                'estacionamiento' => $ingreso['estacionamiento'],
+                'categoria' => $ingreso['categoria'],
+                'horario_egreso' => current_time('mysql'),
+            );
+            $wpdb->insert($table_egresos, $data);
+        }
+
+        // Eliminar los datos de la tabla de ingresos
+        $wpdb->query("DELETE FROM $table_ingresos");
+    }
+}
+// Desprogramar el evento Cron
+function remove_transfer_cron_job() {
+    $timestamp = wp_next_scheduled('transfer_ingresos_event');
+    wp_unschedule_event($timestamp, 'transfer_ingresos_event');
+}
+
+add_action('switch_theme', 'remove_transfer_cron_job'); 
+
+// Comprobar y transferir al inicio del día
+function check_and_transfer_at_start() {
+    // Establecer la zona horaria
+    date_default_timezone_set('America/Argentina/Buenos_Aires');
+
+    // Obtener la hora actual
+    $current_time = date('H:i');
+
+    // Hora de apertura (07:00)
+    $opening_time = '07:00';
+
+    if ($current_time >= $opening_time && $current_time <= '08:00') {
+        transfer_ingresos_to_egresos();
+    }
+}
+
+// Llamar a la función de verificación al inicio del día
+add_action('init', 'check_and_transfer_at_start');
+
 
