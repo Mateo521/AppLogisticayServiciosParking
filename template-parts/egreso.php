@@ -31,6 +31,9 @@ if ($selected_estacionamiento) {
     $count_query .= $wpdb->prepare(" WHERE estacionamiento = %d", $selected_estacionamiento);
 }
 $total_e_items = $wpdb->get_var($count_query);
+
+
+$total_pages = ceil($total_e_items / $per_page);
 ?>
  
 

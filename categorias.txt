@@ -20,3 +20,7 @@ Texto en grafico de torta (cantidad total de vehiculos, cantidad total de vehicu
 Posibilidad de agregar una condicion extra a la consulta SQL para buscar tambien por categoria
 
 Imprimir en codificaciones, Los valores en string
+
+Crear el apartado de ajustes (capacidad de cada estacionamiento, horario de apertura, horario de cierre, )
+
+en botón de egreso, comprobar si el egresado se encuentra primero en la tabla de ingresos en el estacionamiento seleccionado

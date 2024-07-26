@@ -154,6 +154,10 @@ function get_parking_ingresos() {
 
 
 
+
+
+
+// Función para insertar un ingreso
 function handle_insert_ingreso() {
     if (!isset($_POST['categoria_index']) || !isset($_POST['estacionamiento_index']) || !isset($_POST['action']) || $_POST['action'] !== 'insert_ingreso') {
         error_log('Invalid POST data');
@@ -162,7 +166,7 @@ function handle_insert_ingreso() {
     }
 
     $categoria_index = intval($_POST['categoria_index']);
-    $estacionamiento = sanitize_text_field($_POST['estacionamiento_index']); // Obtener el valor de estacionamiento desde POST
+    $estacionamiento = sanitize_text_field($_POST['estacionamiento_index']);
 
     global $wpdb;
     $table_name = $wpdb->prefix . 'parking_ingresos';
@@ -175,9 +179,9 @@ function handle_insert_ingreso() {
             'horario_ingreso' => current_time('mysql'),
         ),
         array(
-            '%s', // formato para estacionamiento
-            '%d', // formato para categoria
-            '%s'  // formato para horario_ingreso
+            '%d',
+            '%d',
+            '%s'
         )
     );
 
@@ -187,14 +191,82 @@ function handle_insert_ingreso() {
         error_log('Data inserted successfully');
     }
 
-    wp_redirect(home_url('/leerqr/')); // Redirige a la página principal (ajusta según sea necesario)
+    wp_redirect(home_url('/leerqr/'));
     exit;
 }
-
-
-
-add_action('admin_post_nopriv_insert_ingreso', 'handle_insert_ingreso');
 add_action('admin_post_insert_ingreso', 'handle_insert_ingreso');
+
+// Función para eliminar el ingreso más antiguo e insertar en egresos
+function handle_delete_oldest_ingreso() {
+    if (!isset($_POST['categoria_index2']) || !isset($_POST['estacionamiento_index2']) || !isset($_POST['action']) || $_POST['action'] !== 'delete_oldest_ingreso') {
+        echo 'Invalid POST data';
+        wp_redirect(home_url('/leerqr/'));
+        exit;
+    }
+
+    $categoria_index = intval($_POST['categoria_index2']);
+    $estacionamiento_index = intval($_POST['estacionamiento_index2']);
+    
+    global $wpdb;
+    $table_ingresos = $wpdb->prefix . 'parking_ingresos';
+    $table_egresos = $wpdb->prefix . 'parking_egresos';
+
+    // Obtener el ingreso más antiguo para la categoría y estacionamiento seleccionados
+    $query = $wpdb->prepare(
+        "SELECT * FROM $table_ingresos WHERE categoria = %d AND estacionamiento = %d ORDER BY horario_ingreso ASC LIMIT 1",
+        $categoria_index,
+        $estacionamiento_index
+    );
+
+    $oldest_ingreso = $wpdb->get_row($query);
+
+    if ($oldest_ingreso) {
+        // Insertar el ingreso más antiguo en la tabla de egresos
+        $result_insert = $wpdb->insert(
+            $table_egresos,
+            array(
+                'estacionamiento' => $oldest_ingreso->estacionamiento,
+                'categoria' => $oldest_ingreso->categoria,
+                'horario_egreso' => current_time('mysql'),
+            ),
+            array(
+                '%d',
+                '%d',
+                '%s'
+            )
+        );
+
+        if ($result_insert !== false) {
+            // Eliminar el ingreso de la tabla de ingresos
+            $result_delete = $wpdb->delete(
+                $table_ingresos,
+                array('id' => $oldest_ingreso->id),
+                array('%d')
+            );
+
+            if ($result_delete === false) {
+                error_log('Error deleting data: ' . $wpdb->last_error);
+            } else {
+                error_log('Deleted from ingresos ID: ' . $oldest_ingreso->id);
+            }
+        } else {
+            error_log('Error inserting data into egresos: ' . $wpdb->last_error);
+        }
+    } else {
+        error_log('No record found to move');
+    }
+
+    wp_redirect(home_url('/leerqr/'));
+    exit;
+}
+add_action('admin_post_delete_oldest_ingreso', 'handle_delete_oldest_ingreso');
+
+
+
+
+
+
+
 
 
 
@@ -265,12 +337,15 @@ function check_and_transfer_at_start() {
     // Hora de apertura (07:00)
     $opening_time = '07:00';
 
-    if ($current_time >= $opening_time && $current_time <= '08:00') {
+    if ($current_time >= $opening_time && $current_time <= '07:00') {
         transfer_ingresos_to_egresos();
     }
 }
 
 // Llamar a la función de verificación al inicio del día
+
 add_action('init', 'check_and_transfer_at_start');
+
+
 
 
