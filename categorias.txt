@@ -17,10 +17,12 @@ Edicion de login utilizando formato index.html
 
 Texto en grafico de torta (cantidad total de vehiculos, cantidad total de vehiculos de dicha categoria )
 
-Posibilidad de agregar una condicion extra a la consulta SQL para buscar tambien por categoria
+Posibilidad de agregar una condicion extra a la consulta SQL para buscar tambien por categoria, y por fecha(en caso contrario igualmente consultar por fecha actual)
 
 Imprimir en codificaciones, Los valores en string
 
 Crear el apartado de ajustes (capacidad de cada estacionamiento, horario de apertura, horario de cierre, )
 
 en botón de egreso, comprobar si el egresado se encuentra primero en la tabla de ingresos en el estacionamiento seleccionado
+
+buscar cuantos egresos hubo por fecha total y por categoria

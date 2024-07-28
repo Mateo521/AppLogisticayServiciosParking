@@ -1,8 +1,9 @@
 <?php
-// Obtener el valor del estacionamiento seleccionado, si existe
 global $selected_estacionamiento;
+global $selected_categoria;
 
 $selected_estacionamiento = isset($_GET['estacionamiento']) ? intval($_GET['estacionamiento']) : null;
+$selected_categoria = isset($_GET['categoria']) ? intval($_GET['categoria']) : null;
 
 // Obtener el número de página actual
 $current_page = max(1, get_query_var('page', 1));
@@ -13,24 +14,52 @@ $per_page = 10;
 // Calcular el offset
 $offset = ($current_page - 1) * $per_page;
 
-// Ajustar la consulta según el estacionamiento seleccionado
+// Ajustar la consulta según el estacionamiento y categoría seleccionados
 global $wpdb;
 $table_name = $wpdb->prefix . 'parking_ingresos';
 
 $query = "SELECT * FROM $table_name";
-if ($selected_estacionamiento) {
-    $query .= $wpdb->prepare(" WHERE estacionamiento = %d", $selected_estacionamiento);
+$where_clauses = array();
+$params = array();
+
+if ($selected_estacionamiento !== null) {
+    $where_clauses[] = "estacionamiento = %d";
+    $params[] = $selected_estacionamiento;
 }
+
+if ($selected_categoria !== null) {
+    $where_clauses[] = "categoria = %d";
+    $params[] = $selected_categoria;
+}
+
+if (!empty($where_clauses)) {
+    $query .= " WHERE " . implode(" AND ", $where_clauses);
+}
+
 $query .= " ORDER BY id DESC";
+$params[] = $per_page;
+$params[] = $offset;
 $query .= $wpdb->prepare(" LIMIT %d OFFSET %d", $per_page, $offset);
-$ingresos = $wpdb->get_results($query, ARRAY_A);
+
+// Preparar la consulta con los parámetros
+$prepared_query = $wpdb->prepare($query, ...$params);
+$ingresos = $wpdb->get_results($prepared_query, ARRAY_A);
 
 // Obtener el número total de registros
 $count_query = "SELECT COUNT(*) FROM $table_name";
-if ($selected_estacionamiento) {
-    $count_query .= $wpdb->prepare(" WHERE estacionamiento = %d", $selected_estacionamiento);
+if (!empty($where_clauses)) {
+    $count_query .= " WHERE " . implode(" AND ", $where_clauses);
 }
-$total_items = $wpdb->get_var($count_query);
+
+// Preparar la consulta de conteo
+$prepared_count_query = $wpdb->prepare($count_query, ...array_slice($params, 0, count($params) - 2));
+$total_items = $wpdb->get_var($prepared_count_query);
+
+// Imprimir la consulta en el HTML para depuración
+echo "<script>console.log('Consulta SQL: " . esc_js($prepared_query) . "');</script>";
+
+
+
 
 
 
@@ -88,13 +117,22 @@ function get_total_items($selected_estacionamiento = null, $selected_categoria =
 $total_pages = ceil($total_items / $per_page);
 
 // Definir nombres de estacionamientos
+
+$categorias = [
+    0 => "Personal docente",
+    1 => "Personal no docente",
+    2 => "Alumnos",
+    3 => "Visitas"
+];
+
+
 $estacionamientos = [
     1 => "Bloque III",
     2 => "Bloque IV",
     3 => "Subsuelo y Rectorado",
     4 => "Chacabuco y Pedernera"
 ];
-
+$current_categoria = isset($categorias[$selected_categoria]) ? $categorias[$selected_categoria] : "No seleccionado";
 $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ? $estacionamientos[$selected_estacionamiento] : "No seleccionado";
 ?>
 
@@ -103,8 +141,51 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
         Actual estacionamiento:
         <strong class="font-semibold text-gray-900 dark:text-white"><?php echo $current_estacionamiento; ?></strong>.
     </p>
+    <p id="current-categoria" class="p-3 text-gray-500 dark:text-gray-400">
+        Actual categoría:
+        <strong class="font-semibold text-gray-900 dark:text-white"><?php echo $current_categoria; ?></strong>.
+    </p>
 
     <?php if (current_user_can('editor') || current_user_can('administrator')): ?>
+
+
+
+        <button id="dropdownDefaultButton2" data-dropdown-toggle="dropdown2"
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm h-max px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            type="button">
+            <?php echo $current_categoria; ?> (admin)
+            <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 10 6">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="m1 1 4 4 4-4" />
+            </svg>
+        </button>
+
+        <!-- Dropdown menu -->
+        <div id="dropdown2" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton2">
+                <li>
+                    <a href="#" data-value="2"
+                        class="dropdown-item menu1 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Alumnos</a>
+                </li>
+                <li>
+                    <a href="#" data-value="3"
+                        class="dropdown-item menu1 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Visitas</a>
+                </li>
+                <li>
+                    <a href="#" data-value="0"
+                        class="dropdown-item menu1 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Personal docente</a>
+                </li>
+                <li>
+                    <a href="#" data-value="1"
+                        class="dropdown-item  menu1 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Personal no docente</a>
+                </li>
+            </ul>
+        </div>
+
+
+
+
         <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown"
             class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm h-max px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
             type="button">
@@ -121,22 +202,22 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
             <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
                 <li>
                     <a href="#" data-value="1"
-                        class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque
+                        class="dropdown-item menu0 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque
                         III</a>
                 </li>
                 <li>
                     <a href="#" data-value="2"
-                        class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque
+                        class="dropdown-item menu0 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque
                         IV</a>
                 </li>
                 <li>
                     <a href="#" data-value="3"
-                        class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Subsuelo
+                        class="dropdown-item menu0 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Subsuelo
                         y Rectorado</a>
                 </li>
                 <li>
                     <a href="#" data-value="4"
-                        class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Chacabuco
+                        class="dropdown-item menu0 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Chacabuco
                         y Pedernera</a>
                 </li>
             </ul>
@@ -211,73 +292,118 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
     let ocupacion = 100;
 
     document.addEventListener('DOMContentLoaded', function () {
-        const dropdownItems = document.querySelectorAll('.dropdown-item');
-        const dropdownButton = document.getElementById('dropdownDefaultButton');
-        const currentEstacionamientoText = document.getElementById('current-estacionamiento');
-        const estacionamientoInput = document.getElementById('estacionamiento_index');
-        const selectedEstacionamiento = estacionamientoInput ? estacionamientoInput.value : null;
+    const dropdownEstacionamientoItems = document.querySelectorAll('.menu0');
+    const dropdownEstacionamientoButton = document.getElementById('dropdownDefaultButton');
+    const currentEstacionamientoText = document.getElementById('current-estacionamiento');
+    const estacionamientoInput = document.getElementById('estacionamiento_index');
+    const selectedEstacionamiento = estacionamientoInput ? estacionamientoInput.value : null;
 
-        // Recuperar ocupacion del local storage si existe
-        if (localStorage.getItem('ocupacion')) {
-            ocupacion = parseInt(localStorage.getItem('ocupacion'));
+    const dropdownCategoriaItems = document.querySelectorAll('.menu1');
+    const dropdownCategoriaButton = document.getElementById('dropdownDefaultButton2');
+    const currentCategoriaText = document.getElementById('current-categoria');
+    const categoriaInput = document.getElementById('categoria_index');
+    const selectedCategoria = categoriaInput ? categoriaInput.value : null;
+
+    // Recuperar ocupacion del local storage si existe
+    if (localStorage.getItem('ocupacion')) {
+        ocupacion = parseInt(localStorage.getItem('ocupacion'));
+    }
+
+    // Función para actualizar el texto del botón y el texto actual de estacionamiento
+    function updateDropdownEstacionamiento(selectionText, selectionValue) {
+        dropdownEstacionamientoButton.innerHTML = `${selectionText} (admin)
+        <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+        </svg>`;
+        currentEstacionamientoText.innerHTML = `Actual estacionamiento: <strong class="font-semibold text-gray-900 dark:text-white">${selectionText}</strong>.`;
+    }
+
+    // Función para actualizar el texto del botón y el texto actual de categoría
+    function updateDropdownCategoria(selectionText, selectionValue) {
+        dropdownCategoriaButton.innerHTML = `${selectionText} (admin)
+        <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+        </svg>`;
+        currentCategoriaText.innerHTML = `Actual categoría: <strong class="font-semibold text-gray-900 dark:text-white">${selectionText}</strong>.`;
+    }
+
+    // Inicializa el botón de estacionamiento con la opción seleccionada al cargar la página
+    dropdownEstacionamientoItems.forEach(item => {
+        if (item.getAttribute('data-value') === selectedEstacionamiento) {
+            updateDropdownEstacionamiento(item.textContent.trim(), item.getAttribute('data-value'));
         }
+    });
 
-        // Función para actualizar el texto del botón y el texto actual de estacionamiento
-        function updateDropdown(selectionText, selectionValue) {
-            dropdownButton.innerHTML = `${selectionText} (admin)
-            <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
-            </svg>`;
-            currentEstacionamientoText.innerHTML = `Actual estacionamiento: <strong class="font-semibold text-gray-900 dark:text-white">${selectionText}</strong>.`;
+    // Inicializa el botón de categoría con la opción seleccionada al cargar la página
+    dropdownCategoriaItems.forEach(item => {
+        if (item.getAttribute('data-value') === selectedCategoria) {
+            updateDropdownCategoria(item.textContent.trim(), item.getAttribute('data-value'));
         }
+    });
 
-        // Inicializa el botón con la opción seleccionada al cargar la página
-        dropdownItems.forEach(item => {
-            if (item.getAttribute('data-value') === selectedEstacionamiento) {
-                updateDropdown(item.textContent.trim(), item.getAttribute('data-value'));
+    // Maneja la selección del dropdown de estacionamiento
+    dropdownEstacionamientoItems.forEach(item => {
+        item.addEventListener('click', function (e) {
+            e.preventDefault();
+            const selectionText = item.textContent.trim();
+            const selectionValue = item.getAttribute('data-value');
+            /*
+            1 Bloque III
+            2 Bloque IV
+            3 Subsuelo y Rectorado
+            4 Chacabuco y Pedernera
+            */
+            switch (parseInt(selectionValue)) {
+                case 1:
+                    ocupacion = 55;
+                    break;
+                case 2:
+                    ocupacion = 60;
+                    break;
+                case 3:
+                    ocupacion = 76;
+                    break;
+                case 4:
+                    ocupacion = 43;
+                    break;
+                default:
+                    ocupacion = 1;
+                    break;
             }
+
+            // Guardar ocupacion en el local storage
+            localStorage.setItem('ocupacion', ocupacion);
+
+            updateDropdownEstacionamiento(selectionText, selectionValue);
+            console.log('Ocupacion actualizada:', ocupacion);
+
+            // Redirigir a la primera página con el nuevo estacionamiento seleccionado
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('estacionamiento', selectionValue);
+            currentUrl.searchParams.set('paged', 1);
+            window.location.href = currentUrl.toString();
         });
+    });
 
-        // Maneja la selección del dropdown
-        dropdownItems.forEach(item => {
-            item.addEventListener('click', function (e) {
-                e.preventDefault();
-                const selectionText = item.textContent.trim();
-                const selectionValue = item.getAttribute('data-value');
-                /*
-                1 Bloque III
-                2 Bloque IV
-                3 Subsuelo y Rectorado
-                4 Chacabuco y Pedernera
-                */
-                switch (parseInt(selectionValue)) {
-                    case 1:
-                        ocupacion = 55;
-                        break;
-                    case 2:
-                        ocupacion = 60;
-                        break;
-                    case 3:
-                        ocupacion = 76;
-                        break;
-                    case 4:
-                        ocupacion = 43;
-                        break;
-                    default:
-                        ocupacion = 1;
-                        break;
-                }
+    // Maneja la selección del dropdown de categoría
+    dropdownCategoriaItems.forEach(item => {
+        item.addEventListener('click', function (e) {
+            e.preventDefault();
+            const selectionText = item.textContent.trim();
+            const selectionValue = item.getAttribute('data-value');
 
-                // Guardar ocupacion en el local storage
-                localStorage.setItem('ocupacion', ocupacion);
+            updateDropdownCategoria(selectionText, selectionValue);
+            console.log('Categoría actualizada:', selectionValue);
 
-                updateDropdown(selectionText, selectionValue);
-                console.log('Ocupacion actualizada:', ocupacion);
-
-                // Redirigir a la primera página con el nuevo estacionamiento seleccionado
-                window.location.href = `<?php echo home_url('/'); ?>?estacionamiento=${selectionValue}&paged=1`;
-            });
+            // Redirigir a la primera página con la nueva categoría seleccionada
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('categoria', selectionValue);
+            currentUrl.searchParams.set('paged', 1);
+            window.location.href = currentUrl.toString();
         });
+    });
+
+
 
         // Renderiza el gráfico después de que la página esté completamente cargada
         if (document.getElementById("radial-chart") && typeof ApexCharts !== 'undefined') {

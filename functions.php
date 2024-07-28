@@ -287,7 +287,7 @@ add_action('wp', 'setup_transfer_cron_job');
 
 function setup_transfer_cron_job() {
     if (!wp_next_scheduled('transfer_ingresos_event')) {
-        wp_schedule_event(strtotime('23:59:00'), 'daily', 'transfer_ingresos_event');
+        wp_schedule_event(strtotime('00:00:00'), 'daily', 'transfer_ingresos_event');
     }
 }
 
@@ -334,10 +334,10 @@ function check_and_transfer_at_start() {
     // Obtener la hora actual
     $current_time = date('H:i');
 
-    // Hora de apertura (07:00)
-    $opening_time = '07:00';
+    // Hora de apertura (06:00)
+    $opening_time = '06:00';
 
-    if ($current_time >= $opening_time && $current_time <= '07:00') {
+    if ($current_time >= $opening_time && $current_time <= '06:00') {
         transfer_ingresos_to_egresos();
     }
 }
