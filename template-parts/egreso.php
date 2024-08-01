@@ -34,9 +34,26 @@ $total_e_items = $wpdb->get_var($count_query);
 
 
 $total_pages = ceil($total_e_items / $per_page);
+
+
+$categorias = [
+    0 => "Personal docente",
+    1 => "Personal no docente",
+    2 => "Alumnos",
+    3 => "Visitas"
+];
+
+$estacionamientos = [
+    1 => "Bloque III",
+    2 => "Bloque IV",
+    3 => "Subsuelo y Rectorado",
+    4 => "Chacabuco y Pedernera"
+];
+
 ?>
  
-
+ <div class="flex justify-center">
+ <div class="max-w-screen-2xl w-full">
 <p class="mb-3 px-3 pt-12 text-gray-500 dark:text-gray-400"> <strong class="font-semibold text-gray-900 dark:text-white">Egresos</strong>.</p>
 
 
@@ -52,30 +69,32 @@ $total_pages = ceil($total_e_items / $per_page);
         </thead>
         <tbody>
             <?php if (!empty($egresos)) : ?>
-                <?php foreach ($egresos as $egreso) : ?>
-                    <tr class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">
-                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            <?php echo esc_html($egreso['id']); ?>
-                        </th>
-                        <td class="px-6 py-4">
-                            <?php echo esc_html($egreso['estacionamiento']); ?>
-                        </td>
-                        <td class="px-6 py-4">
-                            <?php echo esc_html($egreso['categoria']); ?>
-                        </td>
-                        <td class="px-6 py-4">
-                            <?php
-                            $date_format = get_option('date_format');
-                            $time_format = get_option('time_format');
+              <?php foreach ($egresos as $egreso): ?>
+    <tr class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+            <?php echo esc_html($egreso['id']); ?>
+        </th>
+        <td class="px-6 py-4">
+            <?php echo esc_html($estacionamientos[$egreso['estacionamiento']] ?? 'Desconocido'); ?>
+        </td>
+        <td class="px-6 py-4">
+            <?php echo esc_html($categorias[$egreso['categoria']] ?? 'Desconocido'); ?>
+        </td>
+        <td class="px-6 py-4">
+            <?php
+            $date_format = get_option('date_format');
+            $time_format = get_option('time_format');
 
-                            $datetime_format = $date_format . ' ' . $time_format;
-                            $horario_egreso = date_i18n($datetime_format, strtotime($egreso['horario_egreso']) - 3 * 3600);
+            $datetime_format = $date_format . ' ' . $time_format;
 
-                            echo esc_html($horario_egreso);
-                            ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
+            $horario_egreso_gmt = get_date_from_gmt($egreso['horario_egreso'], 'Y-m-d H:i:s');
+            $horario_egreso_local = date_i18n($datetime_format, strtotime($horario_egreso_gmt));
+
+            echo esc_html($horario_egreso_local);
+            ?>
+        </td>
+    </tr>
+<?php endforeach; ?>
             <?php else : ?>
                 <tr>
                     <td colspan="4" class="px-6 py-4 text-center">No hay datos disponibles</td>
@@ -149,7 +168,8 @@ $total_pages = ceil($total_e_items / $per_page);
 
 
 
-
+</div>
+</div>
 <?php
 global $wpdb;
 $table_egresos = $wpdb->prefix . 'parking_egresos';

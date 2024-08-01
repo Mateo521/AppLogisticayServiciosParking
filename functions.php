@@ -191,7 +191,9 @@ function handle_insert_ingreso() {
         error_log('Data inserted successfully');
     }
 
-    wp_redirect(home_url('/leerqr/'));
+    // Obtener la URL de redirección desde el formulario
+    $redirect_url = isset($_POST['redirect_url']) ? esc_url_raw($_POST['redirect_url']) : home_url('/leerqr/');
+    wp_redirect($redirect_url);
     exit;
 }
 add_action('admin_post_insert_ingreso', 'handle_insert_ingreso');
@@ -267,27 +269,14 @@ add_action('admin_post_delete_oldest_ingreso', 'handle_delete_oldest_ingreso');
 
 
 
-
-
-
-// Añadir soporte para la variable paged en las consultas
-function custom_query_vars($vars) {
-    $vars[] = 'paged';
-    return $vars;
-}
-add_filter('query_vars', 'custom_query_vars');
-
-
-
-
-
-
 // Agregar una acción para el Cron Job
 add_action('wp', 'setup_transfer_cron_job');
 
 function setup_transfer_cron_job() {
     if (!wp_next_scheduled('transfer_ingresos_event')) {
-        wp_schedule_event(strtotime('00:00:00'), 'daily', 'transfer_ingresos_event');
+        $timestamp = strtotime('+1 minute'); // Programar para el siguiente minuto
+        wp_schedule_event($timestamp, 'daily', 'transfer_ingresos_event');
+        error_log('Evento cron programado para: ' . date('Y-m-d H:i:s', $timestamp));
     }
 }
 
@@ -303,7 +292,13 @@ function transfer_ingresos_to_egresos() {
     $ingresos = $wpdb->get_results("SELECT * FROM $table_ingresos", ARRAY_A);
 
     if (!empty($ingresos)) {
-         // Asegurarse de que las claves del arreglo coincidan con los nombres de las columnas
+        $transferidos = 0;
+        $errores = 0;
+
+        // Iniciar una transacción para asegurar que todos los registros se transfieren correctamente
+        $wpdb->query('START TRANSACTION');
+
+        // Transferir todos los registros
         foreach ($ingresos as $ingreso) {
             $data = array(
                 'id' => $ingreso['id'],
@@ -311,20 +306,36 @@ function transfer_ingresos_to_egresos() {
                 'categoria' => $ingreso['categoria'],
                 'horario_egreso' => current_time('mysql'),
             );
-            $wpdb->insert($table_egresos, $data);
+            $inserted = $wpdb->insert($table_egresos, $data);
+            if ($inserted) {
+                $transferidos++;
+            } else {
+                $errores++;
+                error_log('Error al insertar ingreso con ID: ' . $ingreso['id']);
+            }
         }
 
-        // Eliminar los datos de la tabla de ingresos
-        $wpdb->query("DELETE FROM $table_ingresos");
+        // Si todos los registros se insertaron correctamente, eliminar de la tabla de ingresos
+        if ($transferidos === count($ingresos)) {
+            $wpdb->query("DELETE FROM $table_ingresos");
+            $wpdb->query('COMMIT');
+            error_log('Ingresos transferidos y eliminados correctamente.');
+        } else {
+            $wpdb->query('ROLLBACK');
+            error_log('Error en la transferencia de algunos ingresos. Ningún registro fue eliminado.');
+        }
+    } else {
+        error_log('No hay ingresos para transferir.');
     }
 }
+
 // Desprogramar el evento Cron
 function remove_transfer_cron_job() {
     $timestamp = wp_next_scheduled('transfer_ingresos_event');
     wp_unschedule_event($timestamp, 'transfer_ingresos_event');
 }
 
-add_action('switch_theme', 'remove_transfer_cron_job'); 
+add_action('switch_theme', 'remove_transfer_cron_job');
 
 // Comprobar y transferir al inicio del día
 function check_and_transfer_at_start() {
@@ -337,15 +348,34 @@ function check_and_transfer_at_start() {
     // Hora de apertura (06:00)
     $opening_time = '06:00';
 
-    if ($current_time >= $opening_time && $current_time <= '06:00') {
+    if ($current_time >= $opening_time && $current_time <= '06:59') {
         transfer_ingresos_to_egresos();
     }
 }
 
 // Llamar a la función de verificación al inicio del día
-
 add_action('init', 'check_and_transfer_at_start');
 
+// Asegurarse de que la zona horaria está configurada correctamente
+function set_timezone() {
+    date_default_timezone_set('America/Argentina/Buenos_Aires');
+}
+add_action('init', 'set_timezone', 1);
 
+// Registro de depuración para verificar la configuración del evento cron
+add_action('init', function() {
+    if (wp_next_scheduled('transfer_ingresos_event')) {
+        error_log('Evento cron programado: transfer_ingresos_event');
+    } else {
+        error_log('Evento cron no programado: transfer_ingresos_event');
+    }
+});
 
+// Ejecutar manualmente la transferencia desde el navegador
+add_action('wp', 'manual_transfer_test');
 
+function manual_transfer_test() {
+    if (isset($_GET['test_transfer'])) {
+        transfer_ingresos_to_egresos();
+    }
+}

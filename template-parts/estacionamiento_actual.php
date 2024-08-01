@@ -56,9 +56,63 @@ $prepared_count_query = $wpdb->prepare($count_query, ...array_slice($params, 0, 
 $total_items = $wpdb->get_var($prepared_count_query);
 
 // Imprimir la consulta en el HTML para depuración
-echo "<script>console.log('Consulta SQL: " . esc_js($prepared_query) . "');</script>";
 
 
+
+
+
+function get_total_vehicles($selected_estacionamiento = null)
+{
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'parking_ingresos';
+
+    // Iniciar la consulta base para contar el total de vehículos
+    $count_query = "SELECT count(*) FROM $table_name";
+    $conditions = array();
+
+    // Agregar condiciones según los parámetros proporcionados
+    if ($selected_estacionamiento) {
+        $conditions[] = $wpdb->prepare("estacionamiento = %d", $selected_estacionamiento);
+    }
+
+    if (!empty($conditions)) {
+        $count_query .= " WHERE " . implode(" AND ", $conditions);
+    }
+
+    // Ejecutar la consulta y obtener el resultado
+    $count = $wpdb->get_var($count_query);
+
+    return $count;
+}
+
+
+function get_total_items_by_category_and_estacionamiento($selected_estacionamiento = null, $selected_categoria = null)
+{
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'parking_ingresos';
+
+    // Iniciar la consulta base para contar elementos
+    $count_query = "SELECT count(*) FROM $table_name";
+    $conditions = array();
+
+    // Agregar condiciones según los parámetros proporcionados
+    if ($selected_estacionamiento !== null) {
+        $conditions[] = $wpdb->prepare("estacionamiento = %d", $selected_estacionamiento);
+    }
+
+    if ($selected_categoria !== null) {
+        $conditions[] = $wpdb->prepare("categoria = %d", $selected_categoria);
+    }
+
+    if (!empty($conditions)) {
+        $count_query .= " WHERE " . implode(" AND ", $conditions);
+    }
+
+    // Ejecutar la consulta y obtener el resultado
+    $count = $wpdb->get_var($count_query);
+
+    return $count;
+}
 
 
 
@@ -113,7 +167,7 @@ function get_total_items($selected_estacionamiento = null, $selected_categoria =
 
 
 
-// Calcular el número total de páginas
+// Calcular el número total de páginas 
 $total_pages = ceil($total_items / $per_page);
 
 // Definir nombres de estacionamientos
@@ -135,273 +189,283 @@ $estacionamientos = [
 $current_categoria = isset($categorias[$selected_categoria]) ? $categorias[$selected_categoria] : "No seleccionado";
 $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ? $estacionamientos[$selected_estacionamiento] : "No seleccionado";
 ?>
+<div class="flex justify-center">
+    <div class="max-w-screen-2xl w-full">
+        <div class="flex justify-between w-full px-5 py-3 items-center">
+            <p id="current-estacionamiento" class="p-3 text-gray-500 dark:text-gray-400">
+                Actual estacionamiento:
+                <strong
+                    class="font-semibold text-gray-900 dark:text-white"><?php echo $current_estacionamiento; ?></strong>.
+            </p>
+            <p id="current-categoria" class="p-3 text-gray-500 dark:text-gray-400">
+                Actual categoría:
+                <strong class="font-semibold text-gray-900 dark:text-white"><?php echo $current_categoria; ?></strong>.
+            </p>
 
-<div class="flex justify-between w-full px-5 py-3 items-center">
-    <p id="current-estacionamiento" class="p-3 text-gray-500 dark:text-gray-400">
-        Actual estacionamiento:
-        <strong class="font-semibold text-gray-900 dark:text-white"><?php echo $current_estacionamiento; ?></strong>.
-    </p>
-    <p id="current-categoria" class="p-3 text-gray-500 dark:text-gray-400">
-        Actual categoría:
-        <strong class="font-semibold text-gray-900 dark:text-white"><?php echo $current_categoria; ?></strong>.
-    </p>
-
-    <?php if (current_user_can('editor') || current_user_can('administrator')): ?>
-
-
-
-        <button id="dropdownDefaultButton2" data-dropdown-toggle="dropdown2"
-            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm h-max px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            type="button">
-            <?php echo $current_categoria; ?> (admin)
-            <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 10 6">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="m1 1 4 4 4-4" />
-            </svg>
-        </button>
-
-        <!-- Dropdown menu -->
-        <div id="dropdown2" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton2">
-                <li>
-                    <a href="#" data-value="2"
-                        class="dropdown-item menu1 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Alumnos</a>
-                </li>
-                <li>
-                    <a href="#" data-value="3"
-                        class="dropdown-item menu1 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Visitas</a>
-                </li>
-                <li>
-                    <a href="#" data-value="0"
-                        class="dropdown-item menu1 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Personal docente</a>
-                </li>
-                <li>
-                    <a href="#" data-value="1"
-                        class="dropdown-item  menu1 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Personal no docente</a>
-                </li>
-            </ul>
-        </div>
+            <?php if (current_user_can('editor') || current_user_can('administrator')): ?>
 
 
 
+                <button id="dropdownDefaultButton2" data-dropdown-toggle="dropdown2"
+                    class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm h-max px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                    type="button">
+                    <?php echo $current_categoria; ?> (admin)
+                    <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 10 6">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m1 1 4 4 4-4" />
+                    </svg>
+                </button>
 
-        <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown"
-            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm h-max px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            type="button">
-            <?php echo $current_estacionamiento; ?> (admin)
-            <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 10 6">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="m1 1 4 4 4-4" />
-            </svg>
-        </button>
+                <!-- Dropdown menu -->
+                <div id="dropdown2"
+                    class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                    <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton2">
+                        <li>
+                            <a href="#" data-value="2"
+                                class="dropdown-item menu1 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Alumnos</a>
+                        </li>
+                        <li>
+                            <a href="#" data-value="3"
+                                class="dropdown-item menu1 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Visitas</a>
+                        </li>
+                        <li>
+                            <a href="#" data-value="0"
+                                class="dropdown-item menu1 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Personal
+                                docente</a>
+                        </li>
+                        <li>
+                            <a href="#" data-value="1"
+                                class="dropdown-item  menu1 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Personal
+                                no docente</a>
+                        </li>
+                    </ul>
+                </div>
 
-        <!-- Dropdown menu -->
-        <div id="dropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-                <li>
-                    <a href="#" data-value="1"
-                        class="dropdown-item menu0 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque
-                        III</a>
-                </li>
-                <li>
-                    <a href="#" data-value="2"
-                        class="dropdown-item menu0 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque
-                        IV</a>
-                </li>
-                <li>
-                    <a href="#" data-value="3"
-                        class="dropdown-item menu0 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Subsuelo
-                        y Rectorado</a>
-                </li>
-                <li>
-                    <a href="#" data-value="4"
-                        class="dropdown-item menu0 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Chacabuco
-                        y Pedernera</a>
-                </li>
-            </ul>
-        </div>
-    <?php endif; ?>
-</div> 
 
-<div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-                <th scope="col" class="md:px-6 px-2 py-3">ID</th>
-                <th scope="col" class="md:px-6 px-2 py-3">Estacionamiento</th>
-                <th scope="col" class="md:px-6 px-2 py-3">Categoría</th>
-                <th scope="col" class="md:px-6 px-2 py-3">Horario de ingreso</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (!empty($ingresos)): ?>
-                <?php foreach ($ingresos as $ingreso): ?>
-                    <tr
-                        class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">
-                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            <?php echo esc_html($ingreso['id']); ?>
-                        </th>
-                        <td class="px-6 py-4">
-                            <?php echo esc_html($ingreso['estacionamiento']); ?>
-                        </td>
-                        <td class="px-6 py-4">
-                            <?php echo esc_html($ingreso['categoria']); ?>
-                        </td>
-                        <td class="px-6 py-4">
-                            <?php
-                            $date_format = get_option('date_format');
-                            $time_format = get_option('time_format');
 
-                            $datetime_format = $date_format . ' ' . $time_format;
-                            $horario_ingreso = date_i18n($datetime_format, strtotime($ingreso['horario_ingreso']) - 3 * 3600);
 
-                            echo esc_html($horario_ingreso);
-                            ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="4" class="px-6 py-4 text-center">No hay datos disponibles</td>
-                </tr>
+                <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown"
+                    class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm h-max px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                    type="button">
+                    <?php echo $current_estacionamiento; ?> (admin)
+                    <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 10 6">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m1 1 4 4 4-4" />
+                    </svg>
+                </button>
+
+                <!-- Dropdown menu -->
+                <div id="dropdown"
+                    class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                    <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
+                        <li>
+                            <a href="#" data-value="1"
+                                class="dropdown-item menu0 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque
+                                III</a>
+                        </li>
+                        <li>
+                            <a href="#" data-value="2"
+                                class="dropdown-item menu0 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque
+                                IV</a>
+                        </li>
+                        <li>
+                            <a href="#" data-value="3"
+                                class="dropdown-item menu0 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Subsuelo
+                                y Rectorado</a>
+                        </li>
+                        <li>
+                            <a href="#" data-value="4"
+                                class="dropdown-item menu0 block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Chacabuco
+                                y Pedernera</a>
+                        </li>
+                    </ul>
+                </div>
             <?php endif; ?>
-        </tbody>
-    </table>
-
-    <!-- Paginación -->
-    <?php if ($total_pages > 1): ?>
-        <div class="pagination">
-            <?php
-            echo paginate_links(
-                array(
-                    'base' => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
-                    'format' => '',
-                    'current' => $current_page,
-                    'total' => $total_pages,
-                    'prev_text' => __('&laquo; Anterior'),
-                    'next_text' => __('Siguiente &raquo;'),
-                )
-            );
-            ?>
         </div>
-    <?php endif; ?>
+
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                        <th scope="col" class="md:px-6 px-2 py-3">ID</th>
+                        <th scope="col" class="md:px-6 px-2 py-3">Estacionamiento</th>
+                        <th scope="col" class="md:px-6 px-2 py-3">Categoría</th>
+                        <th scope="col" class="md:px-6 px-2 py-3">Horario de ingreso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($ingresos)): ?>
+                        <?php foreach ($ingresos as $ingreso): ?>
+                            <tr
+                                class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">
+                                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                    <?php echo esc_html($ingreso['id']); ?>
+                                </th>
+                                <td class="px-6 py-4">
+                                    <?php echo esc_html($estacionamientos[$ingreso['estacionamiento']] ?? 'Desconocido'); ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <?php echo esc_html($categorias[$ingreso['categoria']] ?? 'Desconocido'); ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <?php
+                                    $date_format = get_option('date_format');
+                                    $time_format = get_option('time_format');
+
+                                    $datetime_format = $date_format . ' ' . $time_format;
+
+                                    $horario_ingreso_gmt = get_date_from_gmt($ingreso['horario_ingreso'], 'Y-m-d H:i:s');
+                                    $horario_ingreso_local = date_i18n($datetime_format, strtotime($horario_ingreso_gmt));
+
+                                    echo esc_html($horario_ingreso_local);
+                                    ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center">No hay datos disponibles</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+
+            <!-- Paginación -->
+            <?php if ($total_pages > 1): ?>
+                <div class="pagination">
+                    <?php
+                    echo paginate_links(
+                        array(
+                            'base' => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
+                            'format' => '',
+                            'current' => $current_page,
+                            'total' => $total_pages,
+                            'prev_text' => __('&laquo; Anterior'),
+                            'next_text' => __('Siguiente &raquo;'),
+                        )
+                    );
+                    ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
 </div>
 <script>
     let ocupacion = 100;
 
     document.addEventListener('DOMContentLoaded', function () {
-    const dropdownEstacionamientoItems = document.querySelectorAll('.menu0');
-    const dropdownEstacionamientoButton = document.getElementById('dropdownDefaultButton');
-    const currentEstacionamientoText = document.getElementById('current-estacionamiento');
-    const estacionamientoInput = document.getElementById('estacionamiento_index');
-    const selectedEstacionamiento = estacionamientoInput ? estacionamientoInput.value : null;
+        const dropdownEstacionamientoItems = document.querySelectorAll('.menu0');
+        const dropdownEstacionamientoButton = document.getElementById('dropdownDefaultButton');
+        const currentEstacionamientoText = document.getElementById('current-estacionamiento');
+        const estacionamientoInput = document.getElementById('estacionamiento_index');
+        const selectedEstacionamiento = estacionamientoInput ? estacionamientoInput.value : null;
 
-    const dropdownCategoriaItems = document.querySelectorAll('.menu1');
-    const dropdownCategoriaButton = document.getElementById('dropdownDefaultButton2');
-    const currentCategoriaText = document.getElementById('current-categoria');
-    const categoriaInput = document.getElementById('categoria_index');
-    const selectedCategoria = categoriaInput ? categoriaInput.value : null;
+        const dropdownCategoriaItems = document.querySelectorAll('.menu1');
+        const dropdownCategoriaButton = document.getElementById('dropdownDefaultButton2');
+        const currentCategoriaText = document.getElementById('current-categoria');
+        const categoriaInput = document.getElementById('categoria_index');
+        const selectedCategoria = categoriaInput ? categoriaInput.value : null;
 
-    // Recuperar ocupacion del local storage si existe
-    if (localStorage.getItem('ocupacion')) {
-        ocupacion = parseInt(localStorage.getItem('ocupacion'));
-    }
+        // Recuperar ocupacion del local storage si existe
+        if (localStorage.getItem('ocupacion')) {
+            ocupacion = parseInt(localStorage.getItem('ocupacion'));
+        }
 
-    // Función para actualizar el texto del botón y el texto actual de estacionamiento
-    function updateDropdownEstacionamiento(selectionText, selectionValue) {
-        dropdownEstacionamientoButton.innerHTML = `${selectionText} (admin)
+        // Función para actualizar el texto del botón y el texto actual de estacionamiento
+        function updateDropdownEstacionamiento(selectionText, selectionValue) {
+            dropdownEstacionamientoButton.innerHTML = `${selectionText} (admin)
         <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
         </svg>`;
-        currentEstacionamientoText.innerHTML = `Actual estacionamiento: <strong class="font-semibold text-gray-900 dark:text-white">${selectionText}</strong>.`;
-    }
+            currentEstacionamientoText.innerHTML = `Actual estacionamiento: <strong class="font-semibold text-gray-900 dark:text-white">${selectionText}</strong>.`;
+        }
 
-    // Función para actualizar el texto del botón y el texto actual de categoría
-    function updateDropdownCategoria(selectionText, selectionValue) {
-        dropdownCategoriaButton.innerHTML = `${selectionText} (admin)
+        // Función para actualizar el texto del botón y el texto actual de categoría
+        function updateDropdownCategoria(selectionText, selectionValue) {
+            dropdownCategoriaButton.innerHTML = `${selectionText} (admin)
         <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
         </svg>`;
-        currentCategoriaText.innerHTML = `Actual categoría: <strong class="font-semibold text-gray-900 dark:text-white">${selectionText}</strong>.`;
-    }
-
-    // Inicializa el botón de estacionamiento con la opción seleccionada al cargar la página
-    dropdownEstacionamientoItems.forEach(item => {
-        if (item.getAttribute('data-value') === selectedEstacionamiento) {
-            updateDropdownEstacionamiento(item.textContent.trim(), item.getAttribute('data-value'));
+            currentCategoriaText.innerHTML = `Actual categoría: <strong class="font-semibold text-gray-900 dark:text-white">${selectionText}</strong>.`;
         }
-    });
 
-    // Inicializa el botón de categoría con la opción seleccionada al cargar la página
-    dropdownCategoriaItems.forEach(item => {
-        if (item.getAttribute('data-value') === selectedCategoria) {
-            updateDropdownCategoria(item.textContent.trim(), item.getAttribute('data-value'));
-        }
-    });
-
-    // Maneja la selección del dropdown de estacionamiento
-    dropdownEstacionamientoItems.forEach(item => {
-        item.addEventListener('click', function (e) {
-            e.preventDefault();
-            const selectionText = item.textContent.trim();
-            const selectionValue = item.getAttribute('data-value');
-            /*
-            1 Bloque III
-            2 Bloque IV
-            3 Subsuelo y Rectorado
-            4 Chacabuco y Pedernera
-            */
-            switch (parseInt(selectionValue)) {
-                case 1:
-                    ocupacion = 55;
-                    break;
-                case 2:
-                    ocupacion = 60;
-                    break;
-                case 3:
-                    ocupacion = 76;
-                    break;
-                case 4:
-                    ocupacion = 43;
-                    break;
-                default:
-                    ocupacion = 1;
-                    break;
+        // Inicializa el botón de estacionamiento con la opción seleccionada al cargar la página
+        dropdownEstacionamientoItems.forEach(item => {
+            if (item.getAttribute('data-value') === selectedEstacionamiento) {
+                updateDropdownEstacionamiento(item.textContent.trim(), item.getAttribute('data-value'));
             }
-
-            // Guardar ocupacion en el local storage
-            localStorage.setItem('ocupacion', ocupacion);
-
-            updateDropdownEstacionamiento(selectionText, selectionValue);
-            console.log('Ocupacion actualizada:', ocupacion);
-
-            // Redirigir a la primera página con el nuevo estacionamiento seleccionado
-            const currentUrl = new URL(window.location.href);
-            currentUrl.searchParams.set('estacionamiento', selectionValue);
-            currentUrl.searchParams.set('paged', 1);
-            window.location.href = currentUrl.toString();
         });
-    });
 
-    // Maneja la selección del dropdown de categoría
-    dropdownCategoriaItems.forEach(item => {
-        item.addEventListener('click', function (e) {
-            e.preventDefault();
-            const selectionText = item.textContent.trim();
-            const selectionValue = item.getAttribute('data-value');
-
-            updateDropdownCategoria(selectionText, selectionValue);
-            console.log('Categoría actualizada:', selectionValue);
-
-            // Redirigir a la primera página con la nueva categoría seleccionada
-            const currentUrl = new URL(window.location.href);
-            currentUrl.searchParams.set('categoria', selectionValue);
-            currentUrl.searchParams.set('paged', 1);
-            window.location.href = currentUrl.toString();
+        // Inicializa el botón de categoría con la opción seleccionada al cargar la página
+        dropdownCategoriaItems.forEach(item => {
+            if (item.getAttribute('data-value') === selectedCategoria) {
+                updateDropdownCategoria(item.textContent.trim(), item.getAttribute('data-value'));
+            }
         });
-    });
+
+        // Maneja la selección del dropdown de estacionamiento
+        dropdownEstacionamientoItems.forEach(item => {
+            item.addEventListener('click', function (e) {
+                e.preventDefault();
+                const selectionText = item.textContent.trim();
+                const selectionValue = item.getAttribute('data-value');
+                /*
+                1 Bloque III
+                2 Bloque IV
+                3 Subsuelo y Rectorado
+                4 Chacabuco y Pedernera
+                */
+                switch (parseInt(selectionValue)) {
+                    case 1:
+                        ocupacion = 55;
+                        break;
+                    case 2:
+                        ocupacion = 60;
+                        break;
+                    case 3:
+                        ocupacion = 76;
+                        break;
+                    case 4:
+                        ocupacion = 43;
+                        break;
+                    default:
+                        ocupacion = 1;
+                        break;
+                }
+
+                // Guardar ocupacion en el local storage
+                localStorage.setItem('ocupacion', ocupacion);
+
+                updateDropdownEstacionamiento(selectionText, selectionValue);
+                console.log('Ocupacion actualizada:', ocupacion);
+
+                // Redirigir a la primera página con el nuevo estacionamiento seleccionado
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('estacionamiento', selectionValue);
+                currentUrl.searchParams.set('paged', 1);
+                window.location.href = currentUrl.toString();
+            });
+        });
+
+        // Maneja la selección del dropdown de categoría
+        dropdownCategoriaItems.forEach(item => {
+            item.addEventListener('click', function (e) {
+                e.preventDefault();
+                const selectionText = item.textContent.trim();
+                const selectionValue = item.getAttribute('data-value');
+
+                updateDropdownCategoria(selectionText, selectionValue);
+                console.log('Categoría actualizada:', selectionValue);
+
+                // Redirigir a la primera página con la nueva categoría seleccionada
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('categoria', selectionValue);
+                currentUrl.searchParams.set('paged', 1);
+                window.location.href = currentUrl.toString();
+            });
+        });
 
 
 
@@ -550,385 +614,467 @@ if (current_user_can('editor') || current_user_can('administrator')) {
 
 
 
-    <div class="p-5  grid md:grid-cols-2 grid-cols-1 md:gap-10 gap-2 justify-between">
-        <div class="flex flex-col">
-
-            <p> Estacionamiento actual (admin)</p>
 
 
 
 
-            <div class=" w-full bg-white rounded-lg shadow dark:bg-gray-800 p-4 md:p-6">
-                <div class="flex justify-between mb-3">
-                    <div class="flex items-center">
-                        <div class="flex justify-center items-center">
-                            <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white pe-1">Your team's
-                                progress</h5>
-                            <svg data-popover-target="chart-info" data-popover-placement="bottom"
-                                class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ms-1"
-                                aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                viewBox="0 0 20 20">
-                                <path
-                                    d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
-                            </svg>
-                            <div data-popover id="chart-info" role="tooltip"
-                                class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
-                                <div class="p-3 space-y-2">
-                                    <h3 class="font-semibold text-gray-900 dark:text-white">Activity growth - Incremental
-                                    </h3>
-                                    <p>Report helps navigate cumulative growth of community activities. Ideally, the chart
-                                        should have a growing trend, as stagnating chart signifies a significant decrease of
-                                        community activity.</p>
-                                    <h3 class="font-semibold text-gray-900 dark:text-white">Calculation</h3>
-                                    <p>For each date bucket, the all-time volume of activities is calculated. This means
-                                        that activities in period n contain all activities up to period n, plus the
-                                        activities generated by your community in period.</p>
-                                    <a href="#"
-                                        class="flex items-center font-medium text-blue-600 dark:text-blue-500 dark:hover:text-blue-600 hover:text-blue-700 hover:underline">Read
-                                        more <svg class="w-2 h-2 ms-1.5 rtl:rotate-180" aria-hidden="true"
-                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                                stroke-width="2" d="m1 9 4-4-4-4" />
-                                        </svg></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- drawer component -->
+    <div id="drawer-swipe"
+        class="fixed z-40 w-full overflow-y-auto bg-white border-t border-gray-200 rounded-t-lg dark:border-gray-700 dark:bg-gray-800 transition-transform bottom-0 left-0 right-0 translate-y-full bottom-[60px]"
+        tabindex="-1" aria-labelledby="drawer-swipe-label">
+        <div class="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700" data-drawer-toggle="drawer-swipe">
+            <span class="absolute w-8 h-1 -translate-x-1/2 bg-gray-300 rounded-lg top-3 left-1/2 dark:bg-gray-600"></span>
+            <h5 id="drawer-swipe-label"
+                class="inline-flex items-center text-base text-gray-500 dark:text-gray-400 font-medium"><svg
+                    class="w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                    viewBox="0 0 18 18">
+                    <path
+                        d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10ZM17 13h-2v-2a1 1 0 0 0-2 0v2h-2a1 1 0 0 0 0 2h2v2a1 1 0 0 0 2 0v-2h2a1 1 0 0 0 0-2Z" />
+                </svg>Datos</h5>
+        </div>
+        <div class="grid grid-cols-2 gap-4 p-4 lg:grid-cols-1">
+
+
+
+            <div class="flex flex-col">
+
+                <p> Estacionamiento actual (admin)</p>
+
+
+
+
+                <div class=" w-full bg-white rounded-lg shadow dark:bg-gray-800 p-4 md:p-6">
+                    <div class="flex justify-between mb-3">
+                        <div class="flex items-center">
+                            <div class="flex justify-center items-center">
+                                <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white pe-1">Your team's
+                                    progress</h5>
+                                <svg data-popover-target="chart-info" data-popover-placement="bottom"
+                                    class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ms-1"
+                                    aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                    viewBox="0 0 20 20">
+                                    <path
+                                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
+                                </svg>
+                                <div data-popover id="chart-info" role="tooltip"
+                                    class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+                                    <div class="p-3 space-y-2">
+                                        <h3 class="font-semibold text-gray-900 dark:text-white">Total vehículos -
+                                            Por categoría
+                                        </h3>
+                                        <p>
+
+
+
+                                            <?php
+                                            $total_count = get_total_items_by_category_and_estacionamiento($selected_estacionamiento, 0);
+                                            echo "Personal docente: ".esc_html($total_count)."<br>"; 
+                                            $total_count = get_total_items_by_category_and_estacionamiento($selected_estacionamiento, 1);
+                                            echo "Personal no docente: ".esc_html($total_count)."<br>"; 
+                                            $total_count = get_total_items_by_category_and_estacionamiento($selected_estacionamiento, 2);
+                                            echo "Alumnos: ".esc_html($total_count)."<br>"; 
+                                            $total_count = get_total_items_by_category_and_estacionamiento($selected_estacionamiento, 3);
+                                            echo "Visitas: ".esc_html($total_count); 
+                                           ?>
+
+                                   
+                                       
+                                     
+
+
+
+                                        </p>
+                                        <h3 class="font-semibold text-gray-900 dark:text-white">Cálculo</h3>
+                                        <p>Se basa unicamente por estacionamiento seleccionado en ingresos manuales o por escaneo QR</p>
+                                        <a href="#"
+                                            class="flex items-center font-medium text-blue-600 dark:text-blue-500 dark:hover:text-blue-600 hover:text-blue-700 hover:underline">La torta muestran los datos de ingreso. Si un vehículo egresa no se tomará en cuenta <svg class="w-2 h-2 ms-1.5 rtl:rotate-180" aria-hidden="true"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2" d="m1 9 4-4-4-4" />
+                                            </svg></a>
+                                    </div>
+                                    <div data-popper-arrow></div>
                                 </div>
-                                <div data-popper-arrow></div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                    <div class="grid grid-cols-3 gap-3 mb-2">
-                        <dl
-                            class="bg-orange-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
-                            <dt
-                                class="w-8 h-8 rounded-full bg-orange-100 dark:bg-gray-500 text-orange-600 dark:text-orange-300 text-sm font-medium flex items-center justify-center mb-1">
-                                12</dt>
-                            <dd class="text-orange-600 dark:text-orange-300 text-sm font-medium">To do</dd>
-                        </dl>
-                        <dl
-                            class="bg-teal-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
-                            <dt
-                                class="w-8 h-8 rounded-full bg-teal-100 dark:bg-gray-500 text-teal-600 dark:text-teal-300 text-sm font-medium flex items-center justify-center mb-1">
-                                23</dt>
-                            <dd class="text-teal-600 dark:text-teal-300 text-sm font-medium">In progress</dd>
-                        </dl>
-                        <dl
-                            class="bg-blue-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
-                            <dt
-                                class="w-8 h-8 rounded-full bg-blue-100 dark:bg-gray-500 text-blue-600 dark:text-blue-300 text-sm font-medium flex items-center justify-center mb-1">
-                                64</dt>
-                            <dd class="text-blue-600 dark:text-blue-300 text-sm font-medium">Done</dd>
-                        </dl>
+                    <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                        <div class="grid grid-cols-3 gap-3 mb-2">
+                            <dl
+                                class="bg-orange-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
+                                <dt
+                                    class="w-8 h-8 rounded-full bg-orange-100 dark:bg-gray-500 text-orange-600 dark:text-orange-300 text-sm font-medium flex items-center justify-center mb-1">
+                                    12</dt>
+                                <dd class="text-orange-600 dark:text-orange-300 text-sm font-medium">To do</dd>
+                            </dl>
+                            <dl
+                                class="bg-teal-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
+                                <dt
+                                    class="w-8 h-8 rounded-full bg-teal-100 dark:bg-gray-500 text-teal-600 dark:text-teal-300 text-sm font-medium flex items-center justify-center mb-1">
+                                    23</dt>
+                                <dd class="text-teal-600 dark:text-teal-300 text-sm font-medium">In progress</dd>
+                            </dl>
+                            <dl
+                                class="bg-blue-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
+                                <dt
+                                    class="w-8 h-8 rounded-full bg-blue-100 dark:bg-gray-500 text-blue-600 dark:text-blue-300 text-sm font-medium flex items-center justify-center mb-1">
+                                    64</dt>
+                                <dd class="text-blue-600 dark:text-blue-300 text-sm font-medium">Done</dd>
+                            </dl>
+                        </div>
+                        <button data-collapse-toggle="more-details" type="button"
+                            class="hover:underline text-xs text-gray-500 dark:text-gray-400 font-medium inline-flex items-center">Show
+                            more details <svg class="w-2 h-2 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 10 6">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="m1 1 4 4 4-4" />
+                            </svg>
+                        </button>
+                        <div id="more-details"
+                            class="border-gray-200 border-t dark:border-gray-600 pt-3 mt-3 space-y-2 hidden">
+                            <dl class="flex items-center justify-between">
+                                <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Average task completion
+                                    rate:
+                                </dt>
+                                <dd
+                                    class="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-green-900 dark:text-green-300">
+                                    <svg class="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                        fill="none" viewBox="0 0 10 14">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4" />
+                                    </svg> 57%
+                                </dd>
+                            </dl>
+                            <dl class="flex items-center justify-between">
+                                <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Days until sprint ends:
+                                </dt>
+                                <dd
+                                    class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">
+                                    13 days</dd>
+                            </dl>
+                            <dl class="flex items-center justify-between">
+                                <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Next meeting:</dt>
+                                <dd
+                                    class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">
+                                    Thursday</dd>
+                            </dl>
+                        </div>
                     </div>
-                    <button data-collapse-toggle="more-details" type="button"
-                        class="hover:underline text-xs text-gray-500 dark:text-gray-400 font-medium inline-flex items-center">Show
-                        more details <svg class="w-2 h-2 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 10 6">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 1 4 4 4-4" />
-                        </svg>
-                    </button>
-                    <div id="more-details" class="border-gray-200 border-t dark:border-gray-600 pt-3 mt-3 space-y-2 hidden">
-                        <dl class="flex items-center justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Average task completion rate:
-                            </dt>
-                            <dd
-                                class="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-green-900 dark:text-green-300">
-                                <svg class="w-2.5 h-2.5 me-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                    fill="none" viewBox="0 0 10 14">
+
+                    <!-- Radial Chart -->
+                    <div class="py-6" id="radial-chart"></div>
+
+                    <div
+                        class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
+                        <div class="flex justify-between items-center pt-5">
+                            <!-- Button -->
+                            <button id="dropdownDefaultButton" data-dropdown-toggle="lastDaysdropdown"
+                                data-dropdown-placement="bottom"
+                                class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
+                                type="button">
+                                Last 7 days
+                                <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 10 6">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4" />
-                                </svg> 57%
-                            </dd>
-                        </dl>
-                        <dl class="flex items-center justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Days until sprint ends:</dt>
-                            <dd
-                                class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">
-                                13 days</dd>
-                        </dl>
-                        <dl class="flex items-center justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Next meeting:</dt>
-                            <dd
-                                class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">
-                                Thursday</dd>
-                        </dl>
-                    </div>
-                </div>
-
-                <!-- Radial Chart -->
-                <div class="py-6" id="radial-chart"></div>
-
-                <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
-                    <div class="flex justify-between items-center pt-5">
-                        <!-- Button -->
-                        <button id="dropdownDefaultButton" data-dropdown-toggle="lastDaysdropdown"
-                            data-dropdown-placement="bottom"
-                            class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
-                            type="button">
-                            Last 7 days
-                            <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                fill="none" viewBox="0 0 10 6">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="m1 1 4 4 4-4" />
-                            </svg>
-                        </button>
-                        <div id="lastDaysdropdown"
-                            class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200"
-                                aria-labelledby="dropdownDefaultButton">
-                                <li>
-                                    <a href="#"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
-                                </li>
-                                <li>
-                                    <a href="#"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Today</a>
-                                </li>
-                                <li>
-                                    <a href="#"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
-                                        7 days</a>
-                                </li>
-                                <li>
-                                    <a href="#"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
-                                        30 days</a>
-                                </li>
-                                <li>
-                                    <a href="#"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
-                                        90 days</a>
-                                </li>
-                            </ul>
+                                        stroke-width="2" d="m1 1 4 4 4-4" />
+                                </svg>
+                            </button>
+                            <div id="lastDaysdropdown"
+                                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200"
+                                    aria-labelledby="dropdownDefaultButton">
+                                    <li>
+                                        <a href="#"
+                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
+                                    </li>
+                                    <li>
+                                        <a href="#"
+                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Today</a>
+                                    </li>
+                                    <li>
+                                        <a href="#"
+                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
+                                            7 days</a>
+                                    </li>
+                                    <li>
+                                        <a href="#"
+                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
+                                            30 days</a>
+                                    </li>
+                                    <li>
+                                        <a href="#"
+                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
+                                            90 days</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <a href="#"
+                                class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+                                Progress report
+                                <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="m1 9 4-4-4-4" />
+                                </svg>
+                            </a>
                         </div>
-                        <a href="#"
-                            class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
-                            Progress report
-                            <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="m1 9 4-4-4-4" />
-                            </svg>
-                        </a>
                     </div>
                 </div>
+
+
+
+            </div>
+
+            <div class="flex flex-col">
+
+                <p>Categorías actuales</p>
+
+
+                <div class=" w-full bg-white rounded-lg shadow dark:bg-gray-800 p-4 md:p-6">
+
+                    <div class="flex justify-between items-start w-full">
+                        <div class="flex-col items-center">
+                            <div class="flex items-center mb-1">
+                                <?php
+                                $total_vehicles = get_total_vehicles($selected_estacionamiento);
+                                ?>
+
+                                <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white me-1">
+                                    Total de vehículos: <?php echo esc_html($total_vehicles); ?>
+                                </h5>
+                                <svg data-popover-target="chart-info" data-popover-placement="bottom"
+                                    class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ms-1"
+                                    aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                    viewBox="0 0 20 20">
+                                    <path
+                                        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
+                                </svg>
+                                <div data-popover id="chart-info" role="tooltip"
+                                    class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+                                    <div class="p-3 space-y-2">
+                                        <h3 class="font-semibold text-gray-900 dark:text-white">Activity growth -
+                                            Incremental
+                                        </h3>
+                                        <p>Report helps navigate cumulative growth of community activities. Ideally, the
+                                            chart
+                                            should have a growing trend, as stagnating chart signifies a significant
+                                            decrease of
+                                            community activity.</p>
+                                        <h3 class="font-semibold text-gray-900 dark:text-white">Calculation</h3>
+                                        <p>For each date bucket, the all-time volume of activities is calculated. This means
+                                            that activities in period n contain all activities up to period n, plus the
+                                            activities generated by your community in period.</p>
+                                        <a href="#"
+                                            class="flex items-center font-medium text-blue-600 dark:text-blue-500 dark:hover:text-blue-600 hover:text-blue-700 hover:underline">Read
+                                            more <svg class="w-2 h-2 ms-1.5 rtl:rotate-180" aria-hidden="true"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2" d="m1 9 4-4-4-4" />
+                                            </svg></a>
+                                    </div>
+                                    <div data-popper-arrow></div>
+                                </div>
+                            </div>
+                            <button id="dateRangeButton" data-dropdown-toggle="dateRangeDropdown"
+                                data-dropdown-ignore-click-outside-class="datepicker" type="button"
+                                class="inline-flex items-center text-blue-700 dark:text-blue-600 font-medium hover:underline">31
+                                Nov - 31 Dev <svg class="w-3 h-3 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 10 6">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="m1 1 4 4 4-4" />
+                                </svg>
+                            </button>
+                            <div id="dateRangeDropdown"
+                                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-80 lg:w-96 dark:bg-gray-700 dark:divide-gray-600">
+                                <div class="p-3" aria-labelledby="dateRangeButton">
+                                    <div date-rangepicker datepicker-autohide class="flex items-center">
+                                        <div class="relative">
+                                            <div
+                                                class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                                    viewBox="0 0 20 20">
+                                                    <path
+                                                        d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                                                </svg>
+                                            </div>
+                                            <input name="start" type="text"
+                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                                placeholder="Start date">
+                                        </div>
+                                        <span class="mx-2 text-gray-500 dark:text-gray-400">to</span>
+                                        <div class="relative">
+                                            <div
+                                                class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                                                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                                                    xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                                    viewBox="0 0 20 20">
+                                                    <path
+                                                        d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
+                                                </svg>
+                                            </div>
+                                            <input name="end" type="text"
+                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                                placeholder="End date">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-end items-center">
+                            <button id="widgetDropdownButton" data-dropdown-toggle="widgetDropdown"
+                                data-dropdown-placement="bottom" type="button"
+                                class="inline-flex items-center justify-center text-gray-500 w-8 h-8 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm"><svg
+                                    class="w-3.5 h-3.5 text-gray-800 dark:text-white" aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 3">
+                                    <path
+                                        d="M2 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6.041 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM14 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z" />
+                                </svg><span class="sr-only">Open dropdown</span>
+                            </button>
+                            <div id="widgetDropdown"
+                                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200"
+                                    aria-labelledby="widgetDropdownButton">
+                                    <li>
+                                        <a href="#"
+                                            class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><svg
+                                                class="w-3 h-3 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 21 21">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M7.418 17.861 1 20l2.139-6.418m4.279 4.279 10.7-10.7a3.027 3.027 0 0 0-2.14-5.165c-.802 0-1.571.319-2.139.886l-10.7 10.7m4.279 4.279-4.279-4.279m2.139 2.14 7.844-7.844m-1.426-2.853 4.279 4.279" />
+                                            </svg>Edit widget
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#"
+                                            class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><svg
+                                                class="w-3 h-3 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                fill="currentColor" viewBox="0 0 20 20">
+                                                <path
+                                                    d="M14.707 7.793a1 1 0 0 0-1.414 0L11 10.086V1.5a1 1 0 0 0-2 0v8.586L6.707 7.793a1 1 0 1 0-1.414 1.414l4 4a1 1 0 0 0 1.416 0l4-4a1 1 0 0 0-.002-1.414Z" />
+                                                <path
+                                                    d="M18 12h-2.55l-2.975 2.975a3.5 3.5 0 0 1-4.95 0L4.55 12H2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2Zm-3 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
+                                            </svg>Download data
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#"
+                                            class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><svg
+                                                class="w-3 h-3 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 18 18">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="m5.953 7.467 6.094-2.612m.096 8.114L5.857 9.676m.305-1.192a2.581 2.581 0 1 1-5.162 0 2.581 2.581 0 0 1 5.162 0ZM17 3.84a2.581 2.581 0 1 1-5.162 0 2.581 2.581 0 0 1 5.162 0Zm0 10.322a2.581 2.581 0 1 1-5.162 0 2.581 2.581 0 0 1 5.162 0Z" />
+                                            </svg>Add to repository
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#"
+                                            class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><svg
+                                                class="w-3 h-3 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                fill="currentColor" viewBox="0 0 18 20">
+                                                <path
+                                                    d="M17 4h-4V2a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v2H1a1 1 0 0 0 0 2h1v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1a1 1 0 1 0 0-2ZM7 2h4v2H7V2Zm1 14a1 1 0 1 1-2 0V8a1 1 0 0 1 2 0v8Zm4 0a1 1 0 0 1-2 0V8a1 1 0 0 1 2 0v8Z" />
+                                            </svg>Delete widget
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Line Chart -->
+                    <div class="py-6" id="pie-chart"></div>
+
+                    <div
+                        class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
+                        <div class="flex justify-between items-center pt-5">
+                            <!-- Button -->
+                            <button id="dropdownDefaultButton" data-dropdown-toggle="lastDaysdropdown"
+                                data-dropdown-placement="bottom"
+                                class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
+                                type="button">
+                                Last 7 days
+                                <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 10 6">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="m1 1 4 4 4-4" />
+                                </svg>
+                            </button>
+                            <div id="lastDaysdropdown"
+                                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+                                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200"
+                                    aria-labelledby="dropdownDefaultButton">
+                                    <li>
+                                        <a href="#"
+                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
+                                    </li>
+                                    <li>
+                                        <a href="#"
+                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Today</a>
+                                    </li>
+                                    <li>
+                                        <a href="#"
+                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
+                                            7 days</a>
+                                    </li>
+                                    <li>
+                                        <a href="#"
+                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
+                                            30 days</a>
+                                    </li>
+                                    <li>
+                                        <a href="#"
+                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
+                                            90 days</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <a href="#"
+                                class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+                                Traffic analysis
+                                <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                        stroke-width="2" d="m1 9 4-4-4-4" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
 
 
         </div>
-
-        <div class="flex flex-col">
-
-            <p>Categorías actuales</p>
-
-
-            <div class=" w-full bg-white rounded-lg shadow dark:bg-gray-800 p-4 md:p-6">
-
-                <div class="flex justify-between items-start w-full">
-                    <div class="flex-col items-center">
-                        <div class="flex items-center mb-1">
-                            <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white me-1">Website traffic
-                            </h5>
-                            <svg data-popover-target="chart-info" data-popover-placement="bottom"
-                                class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ms-1"
-                                aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                viewBox="0 0 20 20">
-                                <path
-                                    d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z" />
-                            </svg>
-                            <div data-popover id="chart-info" role="tooltip"
-                                class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
-                                <div class="p-3 space-y-2">
-                                    <h3 class="font-semibold text-gray-900 dark:text-white">Activity growth - Incremental
-                                    </h3>
-                                    <p>Report helps navigate cumulative growth of community activities. Ideally, the chart
-                                        should have a growing trend, as stagnating chart signifies a significant decrease of
-                                        community activity.</p>
-                                    <h3 class="font-semibold text-gray-900 dark:text-white">Calculation</h3>
-                                    <p>For each date bucket, the all-time volume of activities is calculated. This means
-                                        that activities in period n contain all activities up to period n, plus the
-                                        activities generated by your community in period.</p>
-                                    <a href="#"
-                                        class="flex items-center font-medium text-blue-600 dark:text-blue-500 dark:hover:text-blue-600 hover:text-blue-700 hover:underline">Read
-                                        more <svg class="w-2 h-2 ms-1.5 rtl:rotate-180" aria-hidden="true"
-                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                                stroke-width="2" d="m1 9 4-4-4-4" />
-                                        </svg></a>
-                                </div>
-                                <div data-popper-arrow></div>
-                            </div>
-                        </div>
-                        <button id="dateRangeButton" data-dropdown-toggle="dateRangeDropdown"
-                            data-dropdown-ignore-click-outside-class="datepicker" type="button"
-                            class="inline-flex items-center text-blue-700 dark:text-blue-600 font-medium hover:underline">31
-                            Nov - 31 Dev <svg class="w-3 h-3 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                fill="none" viewBox="0 0 10 6">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="m1 1 4 4 4-4" />
-                            </svg>
-                        </button>
-                        <div id="dateRangeDropdown"
-                            class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-80 lg:w-96 dark:bg-gray-700 dark:divide-gray-600">
-                            <div class="p-3" aria-labelledby="dateRangeButton">
-                                <div date-rangepicker datepicker-autohide class="flex items-center">
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
-                                                xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                                <path
-                                                    d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-                                            </svg>
-                                        </div>
-                                        <input name="start" type="text"
-                                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                            placeholder="Start date">
-                                    </div>
-                                    <span class="mx-2 text-gray-500 dark:text-gray-400">to</span>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
-                                                xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                                <path
-                                                    d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-                                            </svg>
-                                        </div>
-                                        <input name="end" type="text"
-                                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                            placeholder="End date">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex justify-end items-center">
-                        <button id="widgetDropdownButton" data-dropdown-toggle="widgetDropdown"
-                            data-dropdown-placement="bottom" type="button"
-                            class="inline-flex items-center justify-center text-gray-500 w-8 h-8 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm"><svg
-                                class="w-3.5 h-3.5 text-gray-800 dark:text-white" aria-hidden="true"
-                                xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 3">
-                                <path
-                                    d="M2 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6.041 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM14 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z" />
-                            </svg><span class="sr-only">Open dropdown</span>
-                        </button>
-                        <div id="widgetDropdown"
-                            class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200"
-                                aria-labelledby="widgetDropdownButton">
-                                <li>
-                                    <a href="#"
-                                        class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><svg
-                                            class="w-3 h-3 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 21 21">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M7.418 17.861 1 20l2.139-6.418m4.279 4.279 10.7-10.7a3.027 3.027 0 0 0-2.14-5.165c-.802 0-1.571.319-2.139.886l-10.7 10.7m4.279 4.279-4.279-4.279m2.139 2.14 7.844-7.844m-1.426-2.853 4.279 4.279" />
-                                        </svg>Edit widget
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#"
-                                        class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><svg
-                                            class="w-3 h-3 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                            fill="currentColor" viewBox="0 0 20 20">
-                                            <path
-                                                d="M14.707 7.793a1 1 0 0 0-1.414 0L11 10.086V1.5a1 1 0 0 0-2 0v8.586L6.707 7.793a1 1 0 1 0-1.414 1.414l4 4a1 1 0 0 0 1.416 0l4-4a1 1 0 0 0-.002-1.414Z" />
-                                            <path
-                                                d="M18 12h-2.55l-2.975 2.975a3.5 3.5 0 0 1-4.95 0L4.55 12H2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2Zm-3 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
-                                        </svg>Download data
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#"
-                                        class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><svg
-                                            class="w-3 h-3 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 18 18">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="m5.953 7.467 6.094-2.612m.096 8.114L5.857 9.676m.305-1.192a2.581 2.581 0 1 1-5.162 0 2.581 2.581 0 0 1 5.162 0ZM17 3.84a2.581 2.581 0 1 1-5.162 0 2.581 2.581 0 0 1 5.162 0Zm0 10.322a2.581 2.581 0 1 1-5.162 0 2.581 2.581 0 0 1 5.162 0Z" />
-                                        </svg>Add to repository
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#"
-                                        class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><svg
-                                            class="w-3 h-3 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                            fill="currentColor" viewBox="0 0 18 20">
-                                            <path
-                                                d="M17 4h-4V2a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v2H1a1 1 0 0 0 0 2h1v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1a1 1 0 1 0 0-2ZM7 2h4v2H7V2Zm1 14a1 1 0 1 1-2 0V8a1 1 0 0 1 2 0v8Zm4 0a1 1 0 0 1-2 0V8a1 1 0 0 1 2 0v8Z" />
-                                        </svg>Delete widget
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Line Chart -->
-                <div class="py-6" id="pie-chart"></div>
-
-                <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
-                    <div class="flex justify-between items-center pt-5">
-                        <!-- Button -->
-                        <button id="dropdownDefaultButton" data-dropdown-toggle="lastDaysdropdown"
-                            data-dropdown-placement="bottom"
-                            class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
-                            type="button">
-                            Last 7 days
-                            <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                fill="none" viewBox="0 0 10 6">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="m1 1 4 4 4-4" />
-                            </svg>
-                        </button>
-                        <div id="lastDaysdropdown"
-                            class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200"
-                                aria-labelledby="dropdownDefaultButton">
-                                <li>
-                                    <a href="#"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
-                                </li>
-                                <li>
-                                    <a href="#"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Today</a>
-                                </li>
-                                <li>
-                                    <a href="#"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
-                                        7 days</a>
-                                </li>
-                                <li>
-                                    <a href="#"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
-                                        30 days</a>
-                                </li>
-                                <li>
-                                    <a href="#"
-                                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
-                                        90 days</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <a href="#"
-                            class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
-                            Traffic analysis
-                            <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="m1 9 4-4-4-4" />
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
     </div>
+
+
+
+
+
+
+
+
+
+
+
 
 
 

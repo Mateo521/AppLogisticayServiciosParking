@@ -20,7 +20,7 @@
 
 <nav class="bg-white border-gray-200 dark:bg-blue-900 border-b-blue-900 border-b-4">
   <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-    <a href="#" class="flex items-center space-x-3 rtl:space-x-reverse">
+    <a href="<?php echo site_url('/'); ?>" class="flex items-center space-x-3 rtl:space-x-reverse">
 
         <img class="h-20" src="http://logisticayservicios.unsl.edu.ar/wp-content/uploads/2023/06/logo.png" alt="">
 
@@ -33,14 +33,16 @@
         </svg>
     </button>
     <div class="hidden w-full md:block md:w-auto" id="navbar-default">
-      <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
+      <ul class="font-medium flex flex-col md:items-center p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
         <li>
           <a href="<?php echo site_url('/'); ?>" class="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white md:dark:text-blue-500" aria-current="page">Inicio</a>
         </li>
         <li>
           <a href="<?php echo site_url('/leerqr/'); ?>" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Leer QR</a>
         </li>
-     
+        <li>
+          <a href="<?php echo site_url('/manual/'); ?>" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Ingreso/Egreso</a>
+        </li>
         <?php
 if ( current_user_can( 'editor' ) || current_user_can( 'administrator' ) ) {
 ?>
@@ -48,7 +50,15 @@ if ( current_user_can( 'editor' ) || current_user_can( 'administrator' ) ) {
         <li>
           <a href="#" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Ajustes (admin)</a>
         </li>
-      
+
+
+        <!-- drawer init and toggle -->
+<div class="text-center">
+   <button class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5  dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" type="button" data-drawer-target="drawer-swipe" data-drawer-show="drawer-swipe" data-drawer-placement="bottom" data-drawer-edge="true" data-drawer-edge-offset="bottom-[60px]" aria-controls="drawer-swipe">
+   Datos
+   </button>
+</div>
+
 
 <?php
 }
@@ -57,3 +67,6 @@ if ( current_user_can( 'editor' ) || current_user_can( 'administrator' ) ) {
     </div>
   </div>
 </nav>
+
+
+
