@@ -231,7 +231,7 @@ $egresos = $wpdb->get_results($query, ARRAY_A);
   console.log("<?php echo $query;?>");
 </script>
 
-<?php
+<?
 // Procesar los datos para el gráfico
 $categories = [];
 $data = [];
@@ -249,11 +249,7 @@ foreach ($egresos as $row) {
 
 $categories = array_keys($data);
 
-// Convertir las fechas al formato DD/MM/YYYY
-$categories = array_map(function($date) {
-    $dateObj = new DateTime($date);
-    return $dateObj->format('d/m/Y');
-}, $categories);
+
 
 // Inicializar series_data con arrays vacíos para cada categoría
 $series_data = [
@@ -262,6 +258,9 @@ $series_data = [
     array_fill(0, count($categories), 0), // Alumnos
     array_fill(0, count($categories), 0)  // Visitas
 ];
+
+
+
 
 // Llenar series_data con los datos de $data
 foreach ($data as $date => $counts) {
@@ -272,6 +271,12 @@ foreach ($data as $date => $counts) {
         }
     }
 }
+
+
+$categories = array_map(function($date) {
+  $dateObj = new DateTime($date);
+  return $dateObj->format('d/m/Y');
+}, $categories);
 
 ?>
 
