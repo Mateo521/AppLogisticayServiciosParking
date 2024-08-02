@@ -124,11 +124,11 @@ $estacionamientos = [
 
 
 
-<div class="p-5 w-full bg-white rounded-lg shadow dark:bg-gray-800">
+<div class="px-5 w-full bg-white rounded-lg shadow dark:bg-gray-800 py-24">
   <div class="flex justify-between p-4 md:p-6 pb-0 md:pb-0">
     <div>
-      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">$12,423</h5>
-      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Sales this week</p>
+      <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Egresos hasta la fecha</h5>
+      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Esta semana</p>
     </div>
     <div class="flex items-center px-2.5 py-0.5 text-base font-semibold text-green-500 dark:text-green-500 text-center">
       23%
@@ -140,27 +140,34 @@ $estacionamientos = [
   <div id="labels-chart" class="px-2.5"></div>
   <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between mt-5 p-4 md:p-6 pt-0 md:pt-0">
     <div class="flex justify-between items-center pt-5">
-      <button id="dropdownDefaultButton" data-dropdown-toggle="lastDaysdropdown" data-dropdown-placement="bottom" class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white" type="button">
-        Last 7 days
-        <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
-        </svg>
-      </button>
-      <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-        <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-          <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a></li>
-          <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Today</a></li>
-          <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 7 days</a></li>
-          <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 30 days</a></li>
-          <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 90 days</a></li>
-        </ul>
-      </div>
-      <a href="#" class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
-        Sales Report
-        <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-        </svg>
-      </a>
+    <form method="GET" action="">
+    <div id="date-range-picker" date-rangepicker datepicker-format="dd/mm/yyyy" class="flex items-center">
+        <div class="relative">
+            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                </svg>
+            </div>
+            <input id="datepicker-range-start" name="start" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Select date start">
+        </div>
+        <span class="mx-4 text-gray-500">to</span>
+        <div class="relative">
+            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                </svg>
+            </div>
+            <input id="datepicker-range-end" name="end" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Select date end">
+        </div>
+        <button type="submit" class="ml-4 bg-blue-500 text-white px-4 py-2 rounded-lg">Buscar</button>
+    </div>
+</form>
+    </div>
+  </div>
+</div>
+
+
+
     </div>
   </div>
 </div>
@@ -174,18 +181,57 @@ $estacionamientos = [
 global $wpdb;
 $table_egresos = $wpdb->prefix . 'parking_egresos';
 
+// Capturar las fechas del formulario
+$start_date = isset($_GET['start']) ? $_GET['start'] : '';
+$end_date = isset($_GET['end']) ? $_GET['end'] : '';
+
+// Convertir las fechas al formato Y-m-d
+if (!empty($start_date)) {
+    // Convertir la fecha de formato dd/mm/yyyy a Y-m-d
+    $start_date = date('Y-m-d', strtotime(str_replace('/', '-', $start_date)));
+} else {
+    $start_date = date('Y-m-d', strtotime('-1 week')); // Fecha por defecto: hace una semana
+}
+
+if (!empty($end_date)) {
+    // Convertir la fecha de formato dd/mm/yyyy a Y-m-d
+    $end_date = date('Y-m-d', strtotime(str_replace('/', '-', $end_date)));
+} else {
+    $end_date = date('Y-m-d'); // Fecha por defecto: hoy
+}
+
+// Imprimir las fechas para depuración
+echo "<script>console.log('Start date: ', '$start_date', 'End date: ', '$end_date');</script>";
+
 // Query para obtener los datos
 $query = "SELECT DATE(horario_egreso) as date, categoria, COUNT(*) as count FROM $table_egresos";
 
-if ($selected_estacionamiento) {
-    $query .= $wpdb->prepare(" WHERE estacionamiento = %d", $selected_estacionamiento);
+$conditions = [];
+
+// Asegúrate de que $selected_estacionamiento esté definido y tenga un valor válido
+if (isset($selected_estacionamiento) && !empty($selected_estacionamiento)) {
+    $conditions[] = $wpdb->prepare("estacionamiento = %d", $selected_estacionamiento);
 }
+
+$conditions[] = $wpdb->prepare("DATE(horario_egreso) BETWEEN %s AND %s", $start_date, $end_date);
+
+if (!empty($conditions)) {
+    $query .= " WHERE " . implode(" AND ", $conditions);
+}
+
 $query .= " GROUP BY DATE(horario_egreso), categoria ORDER BY DATE(horario_egreso) ASC, categoria ASC";
-
-
 
 $egresos = $wpdb->get_results($query, ARRAY_A);
 
+
+
+?>
+
+<script>
+  console.log("<?php echo $query;?>");
+</script>
+
+<?php
 // Procesar los datos para el gráfico
 $categories = [];
 $data = [];
@@ -199,118 +245,143 @@ foreach ($egresos as $row) {
         $data[$date] = [0, 0, 0, 0]; // Inicializar las 4 categorías
     }
     $data[$date][$categoria] = $count; // Asignar el conteo a la categoría correcta
-
-    
 }
 
 $categories = array_keys($data);
-$series_data = array_map(null, ...array_values($data));
+
+// Convertir las fechas al formato DD/MM/YYYY
+$categories = array_map(function($date) {
+    $dateObj = new DateTime($date);
+    return $dateObj->format('d/m/Y');
+}, $categories);
+
+// Inicializar series_data con arrays vacíos para cada categoría
+$series_data = [
+    array_fill(0, count($categories), 0), // Personal docente
+    array_fill(0, count($categories), 0), // Personal no docente
+    array_fill(0, count($categories), 0), // Alumnos
+    array_fill(0, count($categories), 0)  // Visitas
+];
+
+// Llenar series_data con los datos de $data
+foreach ($data as $date => $counts) {
+    $index = array_search($date, $categories);
+    if ($index !== false) {
+        foreach ($counts as $categoria => $count) {
+            $series_data[$categoria][$index] = $count;
+        }
+    }
+}
 
 ?>
 
-
-
 <script>
-   
-const options = {
-  xaxis: {
-    show: true,
-    categories: <?php echo json_encode($categories); ?>,
-    labels: {
-      show: true,
-      style: {
-        fontFamily: "Inter, sans-serif",
-        cssClass: 'text-xs font-normal fill-gray-500 dark:fill-gray-400'
-      }
-    },
-    axisBorder: {
-      show: false,
-    },
-    axisTicks: {
-      show: false,
-    },
-  },
-  yaxis: {
-    show: true,
-    labels: {
-      show: true,
-      style: {
-        fontFamily: "Inter, sans-serif",
-        cssClass: 'text-xs font-normal fill-gray-500 dark:fill-gray-400'
-      },
-      formatter: function (value) {
-        return value;
-      }
-    }
-  },
-  series: [
-    {
-      name: "Personal docente",
-      data: <?php echo json_encode($series_data[0]); ?>,
-      color: "#1A56DB",
-    },
-    {
-      name: "Personal no docente",
-      data: <?php echo json_encode($series_data[1]); ?>,
-      color: "#7E3BF2",
-    },
-    {
-      name: "Alumnos",
-      data: <?php echo json_encode($series_data[2]); ?>,
-      color: "#00A56B",
-    },
-    {
-      name: "Visitas",
-      data: <?php echo json_encode($series_data[3]); ?>,
-      color: "#FF4560",
-    },
-  ],
-  chart: {
-    sparkline: {
-      enabled: false
-    },
-    height: "100%",
-    width: "100%",
-    type: "area",
-    fontFamily: "Inter, sans-serif",
-    dropShadow: {
-      enabled: false,
-    },
-    toolbar: {
-      show: false,
-    },
-  },
-  tooltip: {
-    enabled: true,
-    x: {
-      show: false,
-    },
-  },
-  fill: {
-    type: "gradient",
-    gradient: {
-      opacityFrom: 0.55,
-      opacityTo: 0,
-      shade: "#1C64F2",
-      gradientToColors: ["#1C64F2"],
-    },
-  },
-  dataLabels: {
-    enabled: false,
-  },
-  stroke: {
-    width: 6,
-  },
-  legend: {
-    show: false
-  },
-  grid: {
-    show: false,
-  },
-}
 
-if (document.getElementById("labels-chart") && typeof ApexCharts !== 'undefined') {
-  const chart = new ApexCharts(document.getElementById("labels-chart"), options);
-  chart.render();
-}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+
+
+    const options = {
+        xaxis: {
+            show: true,
+            categories: <?php echo json_encode($categories); ?>,
+            labels: {
+                show: true,
+                style: {
+                    fontFamily: "Inter, sans-serif",
+                    cssClass: 'text-xs font-normal fill-gray-500 dark:fill-gray-400'
+                }
+            },
+            axisBorder: {
+                show: false,
+            },
+            axisTicks: {
+                show: false,
+            },
+        },
+        yaxis: {
+            show: true,
+            labels: {
+                show: true,
+                style: {
+                    fontFamily: "Inter, sans-serif",
+                    cssClass: 'text-xs font-normal fill-gray-500 dark:fill-gray-400'
+                },
+                formatter: function (value) {
+                    return value;
+                }
+            }
+        },
+        series: [
+            {
+                name: "Personal docente",
+                data: <?php echo json_encode($series_data[0]); ?>,
+                color: "#1A56DB",
+            },
+            {
+                name: "Personal no docente",
+                data: <?php echo json_encode($series_data[1]); ?>,
+                color: "#7E3BF2",
+            },
+            {
+                name: "Alumnos",
+                data: <?php echo json_encode($series_data[2]); ?>,
+                color: "#00A56B",
+            },
+            {
+                name: "Visitas",
+                data: <?php echo json_encode($series_data[3]); ?>,
+                color: "#FF4560",
+            },
+        ],
+        chart: {
+            sparkline: {
+                enabled: false
+            },
+            height: "100%",
+            width: "100%",
+            type: "area",
+            fontFamily: "Inter, sans-serif",
+            dropShadow: {
+                enabled: false,
+            },
+            toolbar: {
+                show: false,
+            },
+        },
+        tooltip: {
+            enabled: true,
+            x: {
+                show: false,
+            },
+        },
+        fill: {
+            type: "gradient",
+            gradient: {
+                opacityFrom: 0.55,
+                opacityTo: 0,
+                shade: "#1C64F2",
+                gradientToColors: ["#1C64F2"],
+            },
+        },
+        dataLabels: {
+            enabled: false,
+        },
+        stroke: {
+            width: 6,
+        },
+        legend: {
+            show: false
+        },
+        grid: {
+            show: false,
+        },
+    };
+
+    if (document.getElementById("labels-chart") && typeof ApexCharts !== 'undefined') {
+        const chart = new ApexCharts(document.getElementById("labels-chart"), options);
+        chart.render();
+    }
+});
 </script>

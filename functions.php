@@ -348,7 +348,7 @@ function check_and_transfer_at_start() {
     // Hora de apertura (06:00)
     $opening_time = '06:00';
 
-    if ($current_time >= $opening_time && $current_time <= '06:59') {
+    if ($current_time >= $opening_time) {
         transfer_ingresos_to_egresos();
     }
 }
@@ -379,3 +379,44 @@ function manual_transfer_test() {
         transfer_ingresos_to_egresos();
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+// Añadir estilos personalizados a la página de inicio de sesión
+function custom_login_stylesheet() {
+   // wp_enqueue_style('custom-login', get_stylesheet_directory_uri() . '/login-style.css');
+   wp_enqueue_style('custom-login', 'https://cdn.jsdelivr.net/npm/flowbite@2.4.1/dist/flowbite.min.css');
+   wp_enqueue_script('custom-login', 'https://cdn.jsdelivr.net/npm/flowbite@2.4.1/dist/flowbite.min.js');
+}
+
+add_action('login_enqueue_scripts', 'custom_login_stylesheet');
+
+
+
+// Cambiar el logo de la página de inicio de sesión
+function my_custom_login_logo() {
+    ?>
+    <style type="text/css">
+        #login h1 a {
+            background-image: url('http://logisticayservicios.unsl.edu.ar/wp-content/uploads/2023/06/logo.png');
+            height: 65px;
+            width: 320px;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+    </style>
+    <?php
+}
+
+add_action('login_enqueue_scripts', 'my_custom_login_logo');
+
+
+

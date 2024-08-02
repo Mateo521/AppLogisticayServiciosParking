@@ -444,7 +444,7 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
                 // Redirigir a la primera página con el nuevo estacionamiento seleccionado
                 const currentUrl = new URL(window.location.href);
                 currentUrl.searchParams.set('estacionamiento', selectionValue);
-                currentUrl.searchParams.set('paged', 1);
+                currentUrl.searchParams.set('paged_ingresos', 1);
                 window.location.href = currentUrl.toString();
             });
         });
@@ -462,7 +462,7 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
                 // Redirigir a la primera página con la nueva categoría seleccionada
                 const currentUrl = new URL(window.location.href);
                 currentUrl.searchParams.set('categoria', selectionValue);
-                currentUrl.searchParams.set('paged', 1);
+                currentUrl.searchParams.set('paged_egresos', 1);
                 window.location.href = currentUrl.toString();
             });
         });
@@ -645,13 +645,13 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                         d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10ZM17 13h-2v-2a1 1 0 0 0-2 0v2h-2a1 1 0 0 0 0 2h2v2a1 1 0 0 0 2 0v-2h2a1 1 0 0 0 0-2Z" />
                 </svg>Datos</h5>
         </div>
-        <div class="grid grid-cols-2 gap-4 p-4 lg:grid-cols-1">
+        <div class="grid grid-cols-2 gap-4 p-4 lg:grid-cols-1 " style="height:70vh;overflow-y:scroll;">
 
 
 
             <div class="flex flex-col">
 
-                <p> Estacionamiento actual (admin)</p>
+         
 
 
 
@@ -660,8 +660,7 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                     <div class="flex justify-between mb-3">
                         <div class="flex items-center">
                             <div class="flex justify-center items-center">
-                                <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white pe-1">Your team's
-                                    progress</h5>
+                                <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white pe-1">Estacionamiento actual</h5>
                                 <svg data-popover-target="chart-info" data-popover-placement="bottom"
                                     class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ms-1"
                                     aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -713,32 +712,24 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                     </div>
 
                     <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                        <div class="grid grid-cols-3 gap-3 mb-2">
+                        <div class="grid grid-cols-2 gap-3 mb-2">
                             <dl
                                 class="bg-orange-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
                                 <dt
                                     class="w-8 h-8 rounded-full bg-orange-100 dark:bg-gray-500 text-orange-600 dark:text-orange-300 text-sm font-medium flex items-center justify-center mb-1">
                                     12</dt>
-                                <dd class="text-orange-600 dark:text-orange-300 text-sm font-medium">To do</dd>
+                                <dd class="text-orange-600 dark:text-orange-300 text-sm font-medium">Disponibilidad x/total</dd>
                             </dl>
                             <dl
                                 class="bg-teal-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
                                 <dt
                                     class="w-8 h-8 rounded-full bg-teal-100 dark:bg-gray-500 text-teal-600 dark:text-teal-300 text-sm font-medium flex items-center justify-center mb-1">
                                     23</dt>
-                                <dd class="text-teal-600 dark:text-teal-300 text-sm font-medium">In progress</dd>
-                            </dl>
-                            <dl
-                                class="bg-blue-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
-                                <dt
-                                    class="w-8 h-8 rounded-full bg-blue-100 dark:bg-gray-500 text-blue-600 dark:text-blue-300 text-sm font-medium flex items-center justify-center mb-1">
-                                    64</dt>
-                                <dd class="text-blue-600 dark:text-blue-300 text-sm font-medium">Done</dd>
+                                <dd class="text-teal-600 dark:text-teal-300 text-sm font-medium">Cierre hora actual / hora cierre</dd>
                             </dl>
                         </div>
                         <button data-collapse-toggle="more-details" type="button"
-                            class="hover:underline text-xs text-gray-500 dark:text-gray-400 font-medium inline-flex items-center">Show
-                            more details <svg class="w-2 h-2 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                            class="hover:underline text-xs text-gray-500 dark:text-gray-400 font-medium inline-flex items-center">Mostrar mas detalles <svg class="w-2 h-2 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 10 6">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="m1 1 4 4 4-4" />
@@ -747,8 +738,7 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                         <div id="more-details"
                             class="border-gray-200 border-t dark:border-gray-600 pt-3 mt-3 space-y-2 hidden">
                             <dl class="flex items-center justify-between">
-                                <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Average task completion
-                                    rate:
+                                <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Horario con mayor cantidad de vehículos en promedio:
                                 </dt>
                                 <dd
                                     class="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-green-900 dark:text-green-300">
@@ -756,21 +746,21 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                                         fill="none" viewBox="0 0 10 14">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4" />
-                                    </svg> 57%
+                                    </svg> 12:00
                                 </dd>
                             </dl>
                             <dl class="flex items-center justify-between">
-                                <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Days until sprint ends:
+                                <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Maxima capacidad:
                                 </dt>
                                 <dd
                                     class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">
-                                    13 days</dd>
+                                    hace 13 días</dd>
                             </dl>
                             <dl class="flex items-center justify-between">
-                                <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Next meeting:</dt>
+                                <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Proxima apertura:</dt>
                                 <dd
                                     class="bg-gray-100 text-gray-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-gray-600 dark:text-gray-300">
-                                    Thursday</dd>
+                                    Mañana</dd>
                             </dl>
                         </div>
                     </div>
@@ -781,50 +771,10 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                     <div
                         class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
                         <div class="flex justify-between items-center pt-5">
-                            <!-- Button -->
-                            <button id="dropdownDefaultButton" data-dropdown-toggle="lastDaysdropdown"
-                                data-dropdown-placement="bottom"
-                                class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
-                                type="button">
-                                Last 7 days
-                                <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                    fill="none" viewBox="0 0 10 6">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="m1 1 4 4 4-4" />
-                                </svg>
-                            </button>
-                            <div id="lastDaysdropdown"
-                                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200"
-                                    aria-labelledby="dropdownDefaultButton">
-                                    <li>
-                                        <a href="#"
-                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
-                                    </li>
-                                    <li>
-                                        <a href="#"
-                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Today</a>
-                                    </li>
-                                    <li>
-                                        <a href="#"
-                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
-                                            7 days</a>
-                                    </li>
-                                    <li>
-                                        <a href="#"
-                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
-                                            30 days</a>
-                                    </li>
-                                    <li>
-                                        <a href="#"
-                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
-                                            90 days</a>
-                                    </li>
-                                </ul>
-                            </div>
+                       
                             <a href="#"
                                 class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
-                                Progress report
+                                Compartir
                                 <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
@@ -889,51 +839,8 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                                     <div data-popper-arrow></div>
                                 </div>
                             </div>
-                            <button id="dateRangeButton" data-dropdown-toggle="dateRangeDropdown"
-                                data-dropdown-ignore-click-outside-class="datepicker" type="button"
-                                class="inline-flex items-center text-blue-700 dark:text-blue-600 font-medium hover:underline">31
-                                Nov - 31 Dev <svg class="w-3 h-3 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                    fill="none" viewBox="0 0 10 6">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="m1 1 4 4 4-4" />
-                                </svg>
-                            </button>
-                            <div id="dateRangeDropdown"
-                                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-80 lg:w-96 dark:bg-gray-700 dark:divide-gray-600">
-                                <div class="p-3" aria-labelledby="dateRangeButton">
-                                    <div date-rangepicker datepicker-autohide class="flex items-center">
-                                        <div class="relative">
-                                            <div
-                                                class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
-                                                    xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                                    viewBox="0 0 20 20">
-                                                    <path
-                                                        d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-                                                </svg>
-                                            </div>
-                                            <input name="start" type="text"
-                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                                placeholder="Start date">
-                                        </div>
-                                        <span class="mx-2 text-gray-500 dark:text-gray-400">to</span>
-                                        <div class="relative">
-                                            <div
-                                                class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
-                                                    xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                                    viewBox="0 0 20 20">
-                                                    <path
-                                                        d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-                                                </svg>
-                                            </div>
-                                            <input name="end" type="text"
-                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                                placeholder="End date">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                       
+                        
                         </div>
                         <div class="flex justify-end items-center">
                             <button id="widgetDropdownButton" data-dropdown-toggle="widgetDropdown"
@@ -957,7 +864,7 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                                     stroke-width="2"
                                                     d="M7.418 17.861 1 20l2.139-6.418m4.279 4.279 10.7-10.7a3.027 3.027 0 0 0-2.14-5.165c-.802 0-1.571.319-2.139.886l-10.7 10.7m4.279 4.279-4.279-4.279m2.139 2.14 7.844-7.844m-1.426-2.853 4.279 4.279" />
-                                            </svg>Edit widget
+                                            </svg>()
                                         </a>
                                     </li>
                                     <li>
@@ -969,7 +876,7 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                                                     d="M14.707 7.793a1 1 0 0 0-1.414 0L11 10.086V1.5a1 1 0 0 0-2 0v8.586L6.707 7.793a1 1 0 1 0-1.414 1.414l4 4a1 1 0 0 0 1.416 0l4-4a1 1 0 0 0-.002-1.414Z" />
                                                 <path
                                                     d="M18 12h-2.55l-2.975 2.975a3.5 3.5 0 0 1-4.95 0L4.55 12H2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2Zm-3 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
-                                            </svg>Download data
+                                            </svg>Descargar datos
                                         </a>
                                     </li>
                                     <li>
@@ -980,7 +887,7 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                                     stroke-width="2"
                                                     d="m5.953 7.467 6.094-2.612m.096 8.114L5.857 9.676m.305-1.192a2.581 2.581 0 1 1-5.162 0 2.581 2.581 0 0 1 5.162 0ZM17 3.84a2.581 2.581 0 1 1-5.162 0 2.581 2.581 0 0 1 5.162 0Zm0 10.322a2.581 2.581 0 1 1-5.162 0 2.581 2.581 0 0 1 5.162 0Z" />
-                                            </svg>Add to repository
+                                            </svg>()
                                         </a>
                                     </li>
                                     <li>
@@ -990,7 +897,7 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                                                 fill="currentColor" viewBox="0 0 18 20">
                                                 <path
                                                     d="M17 4h-4V2a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v2H1a1 1 0 0 0 0 2h1v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1a1 1 0 1 0 0-2ZM7 2h4v2H7V2Zm1 14a1 1 0 1 1-2 0V8a1 1 0 0 1 2 0v8Zm4 0a1 1 0 0 1-2 0V8a1 1 0 0 1 2 0v8Z" />
-                                            </svg>Delete widget
+                                            </svg>()
                                         </a>
                                     </li>
                                 </ul>
@@ -1005,49 +912,10 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                         class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
                         <div class="flex justify-between items-center pt-5">
                             <!-- Button -->
-                            <button id="dropdownDefaultButton" data-dropdown-toggle="lastDaysdropdown"
-                                data-dropdown-placement="bottom"
-                                class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
-                                type="button">
-                                Last 7 days
-                                <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                    fill="none" viewBox="0 0 10 6">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2" d="m1 1 4 4 4-4" />
-                                </svg>
-                            </button>
-                            <div id="lastDaysdropdown"
-                                class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-                                <ul class="py-2 text-sm text-gray-700 dark:text-gray-200"
-                                    aria-labelledby="dropdownDefaultButton">
-                                    <li>
-                                        <a href="#"
-                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
-                                    </li>
-                                    <li>
-                                        <a href="#"
-                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Today</a>
-                                    </li>
-                                    <li>
-                                        <a href="#"
-                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
-                                            7 days</a>
-                                    </li>
-                                    <li>
-                                        <a href="#"
-                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
-                                            30 days</a>
-                                    </li>
-                                    <li>
-                                        <a href="#"
-                                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last
-                                            90 days</a>
-                                    </li>
-                                </ul>
-                            </div>
+                           
                             <a href="#"
                                 class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
-                                Traffic analysis
+                                COMPARTIR
                                 <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"

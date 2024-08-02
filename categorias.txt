@@ -26,3 +26,5 @@ Crear el apartado de ajustes (capacidad de cada estacionamiento, horario de aper
 en botón de egreso, comprobar si el egresado se encuentra primero en la tabla de ingresos en el estacionamiento seleccionado
 
 buscar cuantos egresos hubo por fecha total y por categoria
+
+En egreso buscar por fecha
