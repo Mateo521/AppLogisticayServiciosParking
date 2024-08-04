@@ -127,7 +127,7 @@ $estacionamientos = [
   <div class="flex justify-between p-4 md:p-6 pb-0 md:pb-0">
     <div>
       <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Egresos hasta la fecha</h5>
-      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Esta semana</p>
+      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Por día</p>
     </div>
     <div id="percentage-change" class="flex items-center px-2.5 py-0.5 text-base font-semibold text-green-500 dark:text-green-500 text-center">
     </div>
@@ -178,71 +178,73 @@ $table_egresos = $wpdb->prefix . 'parking_egresos';
 
 date_default_timezone_set('America/Argentina/Buenos_Aires'); 
 
-
-// Capturar las fechas del formulario
+// Obtener los parámetros de la consulta si están disponibles
 $start_date = isset($_GET['start']) ? $_GET['start'] : '';
-
-
-
 $end_date = isset($_GET['end']) ? $_GET['end'] : '';
+$selected_estacionamiento = isset($_GET['estacionamiento']) ? $_GET['estacionamiento'] : '';
 
+// Convertir las fechas al formato adecuado
+if (!empty($start_date)) {
+    $start_date = DateTime::createFromFormat('d/m/Y', $start_date)->format('Y-m-d');
+}
+if (!empty($end_date)) {
+    $end_date = DateTime::createFromFormat('d/m/Y', $end_date)->format('Y-m-d');
+}
 
+// Verificar si end_date está vacío
 if (empty($end_date)) {
+    // Obtener la última fecha registrada en la base de datos
     $latest_date_query = "SELECT MAX(DATE(horario_egreso)) AS latest_date FROM $table_egresos";
+    if (!empty($selected_estacionamiento)) {
+        $latest_date_query .= $wpdb->prepare(" WHERE estacionamiento = %d", $selected_estacionamiento);
+    }
     $end_date = $wpdb->get_var($latest_date_query);
 }
 
-// Convertir las fechas al formato Y-m-d
-if (!empty($start_date)) {
-    // Convertir la fecha de formato dd/mm/yyyy a Y-m-d
-    $start_date = date('Y-m-d', strtotime(str_replace('/', '-', $start_date)));
+// Verificar si hay datos para la fecha proporcionada en $end_date
+$data_check_query = "SELECT COUNT(*) FROM $table_egresos WHERE DATE(horario_egreso) = %s";
+if (!empty($selected_estacionamiento)) {
+    $data_check_query .= " AND estacionamiento = %d";
+}
+$data_check_query = $wpdb->prepare($data_check_query, $end_date, $selected_estacionamiento);
+$data_exists = $wpdb->get_var($data_check_query);
 
-   
-
-} else {
-    $start_date = date('Y-m-d', strtotime('-1 week')); // Fecha por defecto: hace una semana
+// Si no hay datos para $end_date y el estacionamiento especificado, buscar la última fecha con datos antes de $end_date
+if ($data_exists == 0) {
+    $last_valid_date_query = "SELECT MAX(DATE(horario_egreso)) AS last_valid_date FROM $table_egresos WHERE DATE(horario_egreso) < %s";
+    if (!empty($selected_estacionamiento)) {
+        $last_valid_date_query .= " AND estacionamiento = %d";
+    }
+    $last_valid_date_query = $wpdb->prepare($last_valid_date_query, $end_date, $selected_estacionamiento);
+    $end_date = $wpdb->get_var($last_valid_date_query);
 }
 
-if (!empty($end_date)) {
-    // Convertir la fecha de formato dd/mm/yyyy a Y-m-d
-    $end_date = date('Y-m-d', strtotime(str_replace('/', '-', $end_date)));
-} else {
-    $end_date = date('Y-m-d'); // Fecha por defecto: hoy
-}
-
-?>
-
-<script>
-    console.log("<?php echo $start_date ?>");
-    console.log("<?php echo $end_date ?>");
-    </script>
-
-<?php
-
-
-
-// Query para obtener los datos
+// Consulta inicial
 $query = "SELECT DATE(horario_egreso) as date, categoria, COUNT(*) as count FROM $table_egresos";
 
+// Condiciones
 $conditions = [];
 
-// Asegúrate de que $selected_estacionamiento esté definido y tenga un valor válido
-if (isset($selected_estacionamiento) && !empty($selected_estacionamiento)) {
+// Añadir condición de estacionamiento si está definida
+if (!empty($selected_estacionamiento)) {
     $conditions[] = $wpdb->prepare("estacionamiento = %d", $selected_estacionamiento);
 }
 
-$conditions[] = $wpdb->prepare("DATE(horario_egreso) >= %s AND DATE(horario_egreso) <= %s", $start_date, $end_date);
+// Añadir condición de rango de fechas
+if (!empty($start_date) && !empty($end_date)) {
+    $conditions[] = $wpdb->prepare("DATE(horario_egreso) >= %s AND DATE(horario_egreso) <= %s", $start_date, $end_date);
+}
 
+// Aplicar condiciones a la consulta
 if (!empty($conditions)) {
     $query .= " WHERE " . implode(" AND ", $conditions);
 }
 
+// Completar la consulta
 $query .= " GROUP BY DATE(horario_egreso), categoria ORDER BY DATE(horario_egreso) ASC, categoria ASC";
 
+// Ejecutar la consulta
 $egresos = $wpdb->get_results($query, ARRAY_A);
-
-
-
 
 // Procesar los datos para el gráfico
 $categories = [];
@@ -261,8 +263,6 @@ foreach ($egresos as $row) {
 
 $categories = array_keys($data);
 
-
-
 // Inicializar series_data con arrays vacíos para cada categoría
 $series_data = [
     array_fill(0, count($categories), 0), // Personal docente
@@ -271,36 +271,40 @@ $series_data = [
     array_fill(0, count($categories), 0)  // Visitas
 ];
 
-
-
-
 // Llenar series_data con los datos de $data
 foreach ($data as $date => $counts) {
     $index = array_search($date, $categories);
     if ($index !== false) {
         foreach ($counts as $categoria => $count) {
-
-
-
-
             $series_data[$categoria][$index] = $count;
-
-
         }
     }
 }
 
+$total_data = [];
+$length = count($series_data[0]);
+
+for ($i = 0; $i < $length; $i++) {
+    $sum = 0;
+    foreach ($series_data as $data_set) {
+        $sum += $data_set[$i];
+    }
+    $total_data[] = $sum;
+}
 
 
-$yesterday  = date('Y-m-d', strtotime($end_date . ' -1 day'));
 
+$yesterday = date('Y-m-d', strtotime($end_date . ' -1 day'));
 
-
+// Calcular totales
 $total_today = isset($data[$end_date]) ? array_sum($data[$end_date]) : 0;
 $total_yesterday = isset($data[$yesterday]) ? array_sum($data[$yesterday]) : 0;
-
-
-
+?>
+<script>
+    console.log("<?php echo $total_today; ?>");
+    console.log("<?php echo $total_yesterday; ?>");
+</script>
+<?php
 if ($total_yesterday > 0) {
     $percentage_change = (($total_today - $total_yesterday) / $total_yesterday) * 100;
 } else {
@@ -311,32 +315,14 @@ $percentage_change = number_format($percentage_change, 2);
 ?>
 <script>
     const percentageChange = <?php echo $percentage_change; ?>;
-    console.log("Percentage Change: " + percentageChange);
+    document.getElementById('percentage-change').textContent = percentageChange + '%';
 </script>
 <?php
-
-
-
-
-
-
-
-
 $categories = array_map(function($date) {
-  $dateObj = new DateTime($date);
-  return $dateObj->format('d/m/Y');
+    $dateObj = new DateTime($date);
+    return $dateObj->format('d/m/Y');
 }, $categories);
-
-
-
-
-
-
-
-
-
 ?>
-
 <script>
 
  // Actualizar el valor del porcentaje en el componente
@@ -413,6 +399,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: "Visitas",
                 data: <?php echo json_encode($series_data[3]); ?>,
                 color: "#FF4560",
+            },
+            {
+                name: "Total",
+                data: <?php echo json_encode($total_data); ?>,
+                color: "#c3ecfd",
             },
         ],
         chart: {

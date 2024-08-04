@@ -165,7 +165,7 @@ function get_total_items($selected_estacionamiento = null, $selected_categoria =
 
 $current_datetime = new DateTime();
 $yesterday = clone $current_datetime;
-$yesterday->modify('-2 day');
+$yesterday->modify('-1 day');
 $yesterday_end = $yesterday->format('Y-m-d') . ' 23:59:59';
 $today_start = $current_datetime->format('Y-m-d') . ' 00:00:00';
 
@@ -255,8 +255,10 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
                         d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
                 <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Nota: todavía se encuentran
-                    <?php echo get_total_vehicles($selected_estacionamiento); ?> vehículos en el estacionamiento actual del día
-                    anterior. Desea restablecer los datos de ingreso vehicular?</h3>
+                    <?php echo get_total_vehicles($selected_estacionamiento); ?> vehículos en el estacionamiento actual
+                    del día
+                    anterior. Desea restablecer los datos de ingreso vehicular?
+                </h3>
                 <button id="confirm-delete" data-modal-hide="popup-modal" type="button"
                     class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
                     Si, estoy seguro
@@ -445,32 +447,32 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
 
 
 
-        document.getElementById('confirm-delete').addEventListener('click', function() {
-        var selectedEstacionamiento = <?php echo json_encode($selected_estacionamiento); ?>;
+        document.getElementById('confirm-delete').addEventListener('click', function () {
+            var selectedEstacionamiento = <?php echo json_encode($selected_estacionamiento); ?>;
 
-        fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams({
-                'action': 'transfer_ingresos_to_egresos',
-                'selected_estacionamiento': selectedEstacionamiento
+            fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'action': 'transfer_ingresos_to_egresos',
+                    'selected_estacionamiento': selectedEstacionamiento
+                })
             })
-        })
-        .then(response => response.text())
-        .then(data => {
-            console.log('Success:', data);
-            // Aquí puedes cerrar el modal o hacer cualquier otra cosa que necesites después de la transferencia
-            document.getElementById('popup-modal').classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-            document.querySelector('.bg-gray-900/50').remove();
-        })
-        .catch((error) => {
-            console.error('Error:', error);
+                .then(response => response.text())
+                .then(data => {
+                    console.log('Success:', data);
+                    // Aquí puedes cerrar el modal o hacer cualquier otra cosa que necesites después de la transferencia
+                    document.getElementById('popup-modal').classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                    document.querySelector('.bg-gray-900/50').remove();
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
         });
-    });
 
 
 
@@ -512,7 +514,7 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
         // Recuperar ocupacion del local storage si existe
         if (localStorage.getItem('ocupacion')) {
             ocupacion = parseInt(localStorage.getItem('ocupacion'));
-          
+
         }
 
         // Función para actualizar el texto del botón y el texto actual de estacionamiento
@@ -583,7 +585,7 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
                 updateDropdownEstacionamiento(selectionText, selectionValue);
                 console.log('Ocupacion actualizada:', ocupacion);
 
-        
+
                 // Redirigir a la primera página con el nuevo estacionamiento seleccionado
                 const currentUrl = new URL(window.location.href);
                 currentUrl.searchParams.set('estacionamiento', selectionValue);
@@ -617,25 +619,30 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
             const chart = new ApexCharts(document.querySelector("#radial-chart"), getChartOptions());
             chart.render();
 
-            setInterval(function() {
+            setInterval(function () {
                 updateTimeComponent();
-        }, 1000);
+            }, 1000);
 
 
         }
     });
 
     function updateTimeComponent() {
-            let now = new Date();
-            let closingTime = new Date();
-            closingTime.setHours(23, 59, 0, 0);
 
-            let nowFormatted = now.toTimeString().split(' ')[0]; // Hora actual con segundos
-            let closingTimeFormatted = closingTime.toTimeString().split(' ')[0].substring(0, 5); // Hora de cierre sin segundos
+        let now = new Date();
+        let openingTime = new Date();
+        openingTime.setHours(6, 0, 0, 0); // Hora de apertura
 
-            let timeInfo = document.getElementById("time-info");
-            timeInfo.innerHTML = nowFormatted + " / " + closingTimeFormatted;
-        }
+
+        let closingTime = new Date();
+        closingTime.setHours(23, 59, 0, 0);
+
+        let nowFormatted = now.toTimeString().split(' ')[0]; // Hora actual con segundos
+        let closingTimeFormatted = closingTime.toTimeString().split(' ')[0].substring(0, 5); // Hora de cierre sin segundos
+        let openingTimeFormatted = openingTime.toTimeString().split(' ')[0].substring(0, 5); // Hora de cierre sin segundos
+        let timeInfo = document.getElementById("time-info");
+        timeInfo.innerHTML = nowFormatted + " / " + openingTimeFormatted + " / " + closingTimeFormatted;
+    }
 
 
     function getChartOptions() {
@@ -649,30 +656,37 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
         oc.innerHTML = total + "/" + ocupacion;
 
 
+        let now = new Date(); // Hora actual
+let openingTime = new Date();
+openingTime.setHours(6, 0, 0, 0); // Hora de apertura
 
-        // Calcular el porcentaje de cierre basado en la hora actual
-        let now = new Date();
-        let openingTime = new Date();
-        openingTime.setHours(6, 0, 0, 0); 
+let closingTime = new Date();
+closingTime.setHours(23, 59, 0, 0); // Hora de cierre
 
-        let closingTime = new Date();
-        closingTime.setHours(23, 59, 0, 0); 
 
-        let totalMinutes = (closingTime - openingTime) / (1000 * 60); // Total de minutos desde las 7:00 hasta las 19:00
-        let elapsedMinutes = (now - openingTime) / (1000 * 60); // Minutos transcurridos desde las 7:00 hasta ahora
+let totalMinutes = (closingTime - openingTime) / (1000 * 60);
 
-        elapsedMinutes = Math.max(elapsedMinutes, 0); // Asegurarse de que no sea negativo
-        elapsedMinutes = Math.min(elapsedMinutes, totalMinutes); // Asegurarse de que no exceda los minutos totales
+let elapsedMinutes = (now - openingTime) / (1000 * 60);
 
-        let closurePercentage = (elapsedMinutes / totalMinutes) * 100;
 
-        closurePercentage = closurePercentage.toFixed(2);
+elapsedMinutes = Math.max(elapsedMinutes, 0);
+elapsedMinutes = Math.min(elapsedMinutes, totalMinutes);
+
+
+let closurePercentage = (elapsedMinutes / totalMinutes) * 100;
+
+closurePercentage = closurePercentage.toFixed(2);
+
+        if(closurePercentage == 0){
+
+            closurePercentage = 100;
+        }
 
         let percentage = (parseInt(total) / ocupacion) * 100;
         percentage = percentage.toFixed(2);
         percentage = parseFloat(percentage)
 
-        updateTimeComponent();
+
 
 
         return {
@@ -892,16 +906,20 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                         <div class="grid grid-cols-2 gap-3 mb-2">
                             <dl
                                 class="bg-orange-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
-                                <dt
-                                    class="w-8 h-8 rounded-full bg-orange-100 dark:bg-gray-500 text-orange-600 dark:text-orange-300 text-sm font-medium flex items-center justify-center mb-1" id="dispo">
-                                    </dt>
-                                <dd class="text-orange-600 dark:text-orange-300 text-sm font-medium" >Disponibilidad/Total
+                                <dt class="w-8 h-8 rounded-full bg-orange-100 dark:bg-gray-500 text-orange-600 dark:text-orange-300 text-sm font-medium flex items-center justify-center mb-1"
+                                    id="dispo">
+                                </dt>
+                                <dd class="text-orange-600 dark:text-orange-300 text-sm font-medium">Disponibilidad/Total
                                 </dd>
                             </dl>
-                            <dl id="time-component" class="bg-teal-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
-        <dt id="time-info" class=" h-8 rounded-full bg-teal-100 dark:bg-gray-500 text-teal-600 dark:text-teal-300 text-sm font-medium flex items-center justify-center mb-1  w-max px-2"></dt>
-        <dd class="text-teal-600 dark:text-teal-300 text-sm font-medium">Hora actual / Hora cierre</dd>
-    </dl>
+                            <dl id="time-component"
+                                class="bg-teal-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
+                                <dt id="time-info"
+                                    class=" h-8 rounded-full bg-teal-100 dark:bg-gray-500 text-teal-600 dark:text-teal-300 text-sm font-medium flex items-center justify-center mb-1  w-max px-2">
+                                </dt>
+                                <dd class="text-teal-600 dark:text-teal-300 text-sm font-medium">Hora actual / Hora apertura / Hora cierre
+                                </dd>
+                            </dl>
                         </div>
                         <button data-collapse-toggle="more-details" type="button"
                             class="hover:underline text-xs text-gray-500 dark:text-gray-400 font-medium inline-flex items-center">Mostrar
