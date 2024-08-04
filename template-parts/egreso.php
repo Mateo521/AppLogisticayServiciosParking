@@ -61,43 +61,42 @@ $estacionamientos = [
     <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
-                <th scope="col" class="md:px-6 px-2 py-3">ID</th>
-                <th scope="col" class="md:px-6 px-2 py-3">Estacionamiento</th>
-                <th scope="col" class="md:px-6 px-2 py-3">Categoría</th>
-                <th scope="col" class="md:px-6 px-2 py-3">Horario de egreso</th>
+                <th scope="col" class="md:px-3 px-2 py-3">ID</th>
+                <th scope="col" class="md:px-3 px-2 py-3">Estacionamiento</th>
+                <th scope="col" class="md:px-3 px-2 py-3">Categoría</th>
+                <th scope="col" class="md:px-3 px-2 py-3">Horario de egreso</th>
             </tr>
         </thead>
         <tbody>
             <?php if (!empty($egresos)) : ?>
               <?php foreach ($egresos as $egreso): ?>
     <tr class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">
-        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+        <th scope="row" class="px-3 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
             <?php echo esc_html($egreso['id']); ?>
         </th>
-        <td class="px-6 py-4">
+        <td class="px-3 py-4">
             <?php echo esc_html($estacionamientos[$egreso['estacionamiento']] ?? 'Desconocido'); ?>
         </td>
-        <td class="px-6 py-4">
+        <td class="px-3 py-4">
             <?php echo esc_html($categorias[$egreso['categoria']] ?? 'Desconocido'); ?>
         </td>
-        <td class="px-6 py-4">
+        <td class="px-3 py-4">
             <?php
-            $date_format = get_option('date_format');
-            $time_format = get_option('time_format');
-
-            $datetime_format = $date_format . ' ' . $time_format;
-
-            $horario_egreso_gmt = get_date_from_gmt($egreso['horario_egreso'], 'Y-m-d H:i:s');
-            $horario_egreso_local = date_i18n($datetime_format, strtotime($horario_egreso_gmt));
-
-            echo esc_html($horario_egreso_local);
+   $date_format = get_option('date_format');
+   $time_format = get_option('time_format');
+   $datetime_format = $date_format . ' ' . $time_format;
+   
+   // Asumiendo que $egreso['horario_egreso'] está en formato 'Y-m-d H:i:s' en GMT
+   $horario_egreso_local = date_i18n($datetime_format, strtotime($egreso['horario_egreso']));
+   
+   echo esc_html($horario_egreso_local);
             ?>
         </td>
     </tr>
 <?php endforeach; ?>
             <?php else : ?>
                 <tr>
-                    <td colspan="4" class="px-6 py-4 text-center">No hay datos disponibles</td>
+                    <td colspan="4" class="px-3 py-4 text-center">No hay datos disponibles</td>
                 </tr>
             <?php endif; ?>
         </tbody>
@@ -130,11 +129,7 @@ $estacionamientos = [
       <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">Egresos hasta la fecha</h5>
       <p class="text-base font-normal text-gray-500 dark:text-gray-400">Esta semana</p>
     </div>
-    <div class="flex items-center px-2.5 py-0.5 text-base font-semibold text-green-500 dark:text-green-500 text-center">
-      23%
-      <svg class="w-3 h-3 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14">
-        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4"/>
-      </svg>
+    <div id="percentage-change" class="flex items-center px-2.5 py-0.5 text-base font-semibold text-green-500 dark:text-green-500 text-center">
     </div>
   </div>
   <div id="labels-chart" class="px-2.5"></div>
@@ -181,14 +176,29 @@ $estacionamientos = [
 global $wpdb;
 $table_egresos = $wpdb->prefix . 'parking_egresos';
 
+date_default_timezone_set('America/Argentina/Buenos_Aires'); 
+
+
 // Capturar las fechas del formulario
 $start_date = isset($_GET['start']) ? $_GET['start'] : '';
+
+
+
 $end_date = isset($_GET['end']) ? $_GET['end'] : '';
+
+
+if (empty($end_date)) {
+    $latest_date_query = "SELECT MAX(DATE(horario_egreso)) AS latest_date FROM $table_egresos";
+    $end_date = $wpdb->get_var($latest_date_query);
+}
 
 // Convertir las fechas al formato Y-m-d
 if (!empty($start_date)) {
     // Convertir la fecha de formato dd/mm/yyyy a Y-m-d
     $start_date = date('Y-m-d', strtotime(str_replace('/', '-', $start_date)));
+
+   
+
 } else {
     $start_date = date('Y-m-d', strtotime('-1 week')); // Fecha por defecto: hace una semana
 }
@@ -200,8 +210,16 @@ if (!empty($end_date)) {
     $end_date = date('Y-m-d'); // Fecha por defecto: hoy
 }
 
-// Imprimir las fechas para depuración
-echo "<script>console.log('Start date: ', '$start_date', 'End date: ', '$end_date');</script>";
+?>
+
+<script>
+    console.log("<?php echo $start_date ?>");
+    console.log("<?php echo $end_date ?>");
+    </script>
+
+<?php
+
+
 
 // Query para obtener los datos
 $query = "SELECT DATE(horario_egreso) as date, categoria, COUNT(*) as count FROM $table_egresos";
@@ -213,7 +231,7 @@ if (isset($selected_estacionamiento) && !empty($selected_estacionamiento)) {
     $conditions[] = $wpdb->prepare("estacionamiento = %d", $selected_estacionamiento);
 }
 
-$conditions[] = $wpdb->prepare("DATE(horario_egreso) BETWEEN %s AND %s", $start_date, $end_date);
+$conditions[] = $wpdb->prepare("DATE(horario_egreso) >= %s AND DATE(horario_egreso) <= %s", $start_date, $end_date);
 
 if (!empty($conditions)) {
     $query .= " WHERE " . implode(" AND ", $conditions);
@@ -225,13 +243,7 @@ $egresos = $wpdb->get_results($query, ARRAY_A);
 
 
 
-?>
 
-<script>
-  console.log("<?php echo $query;?>");
-</script>
-
-<?
 // Procesar los datos para el gráfico
 $categories = [];
 $data = [];
@@ -267,10 +279,47 @@ foreach ($data as $date => $counts) {
     $index = array_search($date, $categories);
     if ($index !== false) {
         foreach ($counts as $categoria => $count) {
+
+
+
+
             $series_data[$categoria][$index] = $count;
+
+
         }
     }
 }
+
+
+
+$yesterday  = date('Y-m-d', strtotime($end_date . ' -1 day'));
+
+
+
+$total_today = isset($data[$end_date]) ? array_sum($data[$end_date]) : 0;
+$total_yesterday = isset($data[$yesterday]) ? array_sum($data[$yesterday]) : 0;
+
+
+
+if ($total_yesterday > 0) {
+    $percentage_change = (($total_today - $total_yesterday) / $total_yesterday) * 100;
+} else {
+    $percentage_change = 100; // Si no hay datos de ayer, consideramos que el cambio es del 100%
+}
+
+$percentage_change = number_format($percentage_change, 2);
+?>
+<script>
+    const percentageChange = <?php echo $percentage_change; ?>;
+    console.log("Percentage Change: " + percentageChange);
+</script>
+<?php
+
+
+
+
+
+
 
 
 $categories = array_map(function($date) {
@@ -278,9 +327,35 @@ $categories = array_map(function($date) {
   return $dateObj->format('d/m/Y');
 }, $categories);
 
+
+
+
+
+
+
+
+
 ?>
 
 <script>
+
+ // Actualizar el valor del porcentaje en el componente
+ const percentageElement = document.getElementById('percentage-change');
+
+
+        percentageElement.innerHTML = `${percentageChange}% <svg id="arrow-s" class="w-3 h-3 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4"/></svg>`;
+        const arrowss = document.getElementById('arrow-s');
+        // Cambiar el color del texto según el valor del porcentaje
+        if (percentageChange < 0) {
+            percentageElement.classList.remove('text-green-500');
+            percentageElement.classList.add('text-red-500');
+            arrowss.classList.add('rotate-180');
+        } else {
+            percentageElement.classList.remove('text-red-500');
+            percentageElement.classList.add('text-green-500');
+            arrowss.classList.remove('rotate-180'); 
+        }
+
 
 
 

@@ -1,5 +1,10 @@
 <?php
 
+if (!session_id()) {
+    session_start();
+}
+
+
 function agregar_scripts_y_estilos() {
     // Agregar scripts
 
@@ -192,6 +197,8 @@ function handle_insert_ingreso() {
     }
 
     // Obtener la URL de redirección desde el formulario
+    $_SESSION['message'] = 'Vehículo ingresado con éxito';
+
     $redirect_url = isset($_POST['redirect_url']) ? esc_url_raw($_POST['redirect_url']) : home_url('/leerqr/');
     wp_redirect($redirect_url);
     exit;
@@ -258,127 +265,15 @@ function handle_delete_oldest_ingreso() {
         error_log('No record found to move');
     }
 
-    wp_redirect(home_url('/leerqr/'));
+    $_SESSION['message'] = 'Vehículo eliminado con éxito';
+
+
+    $redirect_url = isset($_POST['redirect_url2']) ? esc_url_raw($_POST['redirect_url2']) : home_url('/leerqr/');
+    wp_redirect($redirect_url);
     exit;
 }
 add_action('admin_post_delete_oldest_ingreso', 'handle_delete_oldest_ingreso');
 
-
-
-
-
-
-
-// Agregar una acción para el Cron Job
-add_action('wp', 'setup_transfer_cron_job');
-
-function setup_transfer_cron_job() {
-    if (!wp_next_scheduled('transfer_ingresos_event')) {
-        $timestamp = strtotime('+1 minute'); // Programar para el siguiente minuto
-        wp_schedule_event($timestamp, 'daily', 'transfer_ingresos_event');
-        error_log('Evento cron programado para: ' . date('Y-m-d H:i:s', $timestamp));
-    }
-}
-
-// La función que se ejecutará
-add_action('transfer_ingresos_event', 'transfer_ingresos_to_egresos');
-
-function transfer_ingresos_to_egresos() {
-    global $wpdb;
-    $table_ingresos = $wpdb->prefix . 'parking_ingresos';
-    $table_egresos = $wpdb->prefix . 'parking_egresos';
-
-    // Verificar si hay registros para transferir
-    $ingresos = $wpdb->get_results("SELECT * FROM $table_ingresos", ARRAY_A);
-
-    if (!empty($ingresos)) {
-        $transferidos = 0;
-        $errores = 0;
-
-        // Iniciar una transacción para asegurar que todos los registros se transfieren correctamente
-        $wpdb->query('START TRANSACTION');
-
-        // Transferir todos los registros
-        foreach ($ingresos as $ingreso) {
-            $data = array(
-                'id' => $ingreso['id'],
-                'estacionamiento' => $ingreso['estacionamiento'],
-                'categoria' => $ingreso['categoria'],
-                'horario_egreso' => current_time('mysql'),
-            );
-            $inserted = $wpdb->insert($table_egresos, $data);
-            if ($inserted) {
-                $transferidos++;
-            } else {
-                $errores++;
-                error_log('Error al insertar ingreso con ID: ' . $ingreso['id']);
-            }
-        }
-
-        // Si todos los registros se insertaron correctamente, eliminar de la tabla de ingresos
-        if ($transferidos === count($ingresos)) {
-            $wpdb->query("DELETE FROM $table_ingresos");
-            $wpdb->query('COMMIT');
-            error_log('Ingresos transferidos y eliminados correctamente.');
-        } else {
-            $wpdb->query('ROLLBACK');
-            error_log('Error en la transferencia de algunos ingresos. Ningún registro fue eliminado.');
-        }
-    } else {
-        error_log('No hay ingresos para transferir.');
-    }
-}
-
-// Desprogramar el evento Cron
-function remove_transfer_cron_job() {
-    $timestamp = wp_next_scheduled('transfer_ingresos_event');
-    wp_unschedule_event($timestamp, 'transfer_ingresos_event');
-}
-
-add_action('switch_theme', 'remove_transfer_cron_job');
-
-// Comprobar y transferir al inicio del día
-function check_and_transfer_at_start() {
-    // Establecer la zona horaria
-    date_default_timezone_set('America/Argentina/Buenos_Aires');
-
-    // Obtener la hora actual
-    $current_time = date('H:i');
-
-    // Hora de apertura (06:00)
-    $opening_time = '06:00';
-
-    if ($current_time >= $opening_time) {
-        transfer_ingresos_to_egresos();
-    }
-}
-
-// Llamar a la función de verificación al inicio del día
-add_action('init', 'check_and_transfer_at_start');
-
-// Asegurarse de que la zona horaria está configurada correctamente
-function set_timezone() {
-    date_default_timezone_set('America/Argentina/Buenos_Aires');
-}
-add_action('init', 'set_timezone', 1);
-
-// Registro de depuración para verificar la configuración del evento cron
-add_action('init', function() {
-    if (wp_next_scheduled('transfer_ingresos_event')) {
-        error_log('Evento cron programado: transfer_ingresos_event');
-    } else {
-        error_log('Evento cron no programado: transfer_ingresos_event');
-    }
-});
-
-// Ejecutar manualmente la transferencia desde el navegador
-add_action('wp', 'manual_transfer_test');
-
-function manual_transfer_test() {
-    if (isset($_GET['test_transfer'])) {
-        transfer_ingresos_to_egresos();
-    }
-}
 
 
 
@@ -417,6 +312,73 @@ function my_custom_login_logo() {
 }
 
 add_action('login_enqueue_scripts', 'my_custom_login_logo');
+
+
+
+
+
+
+add_action('wp_ajax_transfer_ingresos_to_egresos', 'transfer_ingresos_to_egresos_ajax');
+add_action('wp_ajax_nopriv_transfer_ingresos_to_egresos', 'transfer_ingresos_to_egresos_ajax');
+
+function transfer_ingresos_to_egresos_ajax() {
+    if (!isset($_POST['selected_estacionamiento'])) {
+        wp_send_json_error('Estacionamiento no seleccionado');
+    }
+
+    $selected_estacionamiento = intval($_POST['selected_estacionamiento']);
+
+    // Llamar a la función que transfiere los datos de ingresos a egresos
+    transfer_ingresos_to_egresos($selected_estacionamiento);
+
+    wp_send_json_success('Datos transferidos exitosamente');
+}
+
+function transfer_ingresos_to_egresos($selected_estacionamiento) {
+    if (!$selected_estacionamiento) {
+        return; // Si no hay estacionamiento seleccionado, no hacer nada
+    }
+
+    global $wpdb;
+    $table_name_ingresos = $wpdb->prefix . 'parking_ingresos';
+    $table_name_egresos = $wpdb->prefix . 'parking_egresos';
+
+    // Obtener la fecha actual
+    $current_date = current_time('Y-m-d');
+
+    // Obtener todos los ingresos para el estacionamiento seleccionado que son anteriores al día actual
+    $ingresos = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT * FROM $table_name_ingresos WHERE estacionamiento = %d AND DATE(horario_ingreso) < %s",
+            $selected_estacionamiento,
+            $current_date
+        )
+    );
+
+    // Transferir cada ingreso a la tabla de egresos
+    foreach ($ingresos as $ingreso) {
+        $wpdb->insert(
+            $table_name_egresos,
+            [
+                'estacionamiento' => $ingreso->estacionamiento,
+                'categoria' => $ingreso->categoria,
+                'horario_egreso' => current_time('mysql') // Usar la hora actual como horario de egreso
+            ],
+            [
+                '%d',
+                '%d',
+                '%s'
+            ]
+        );
+
+        // Eliminar el ingreso de la tabla de ingresos
+        $wpdb->delete(
+            $table_name_ingresos,
+            ['id' => $ingreso->id],
+            ['%d']
+        );
+    }
+}
 
 
 

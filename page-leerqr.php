@@ -1,5 +1,10 @@
 <?php
 
+if (!session_id()) {
+    session_start();
+}
+
+
 get_header();
 
 
@@ -11,7 +16,32 @@ get_header();
     <div class="max-w-screen-lg w-full rounded-xl overflow-hidden">
         <div class="text-center" id="error-message"></div>
         <video class="w-full" id="cameraFeed" width="320" height="240" autoplay></video>
+
+
+        <?php
+
+if(isset($_SESSION['message'])): ?>
+    <div id="alert-border-3" class="flex items-center px-4 py-2 mb-4 text-green-800 border-t-4 border-green-300 bg-green-50 dark:text-green-400 dark:bg-gray-800 dark:border-green-800" role="alert">
+    <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+    </svg>
+    <div class="ms-3 text-sm font-medium">
+    <?php echo $_SESSION['message']; ?>
     </div>
+    <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-green-50 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-1.5 hover:bg-green-200 inline-flex items-center justify-center h-8 w-8 dark:bg-gray-800 dark:text-green-400 dark:hover:bg-gray-700"  data-dismiss-target="#alert-border-3" aria-label="Close">
+      <span class="sr-only">Cerrar</span>
+      <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+      </svg>
+    </button>
+    <?php unset($_SESSION['message']);?>
+</div>
+<?php endif; ?>
+
+
+    </div>
+   
+   
 </div>
 <div class="flex w-full justify-center">
 
@@ -151,7 +181,17 @@ get_header();
 
 
 
+<style>
 
+.message {
+        margin: 20px 0;
+        padding: 10px;
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        border-radius: 5px;
+    }
+</style>
 <script>
 
 
@@ -239,35 +279,33 @@ get_header();
     }
 
     async function initCamera() {
-        try {
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = devices.filter(device => device.kind === 'videoinput');
-            const rearCamera = videoDevices.find(device => device.label.toLowerCase().includes('back')) || videoDevices[0];
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                const rearCamera = videoDevices.find(device => device.label.toLowerCase().includes('back')) || videoDevices[0];
 
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: {
-                        exact: 'environment'
-                    },
-                    deviceId: rearCamera.deviceId
-                }
-            });
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        deviceId: rearCamera.deviceId
+                    }
+                });
 
-            const video = document.getElementById('cameraFeed');
-            video.srcObject = stream;
-            video.addEventListener('loadedmetadata', () => {
-                scanQRCode(stream);
-            });
+                const video = document.getElementById('cameraFeed');
+                video.srcObject = stream;
+                video.addEventListener('loadedmetadata', () => {
+                    scanQRCode(stream);
+                });
 
-            window.addEventListener('beforeunload', () => {
-                stream.getTracks().forEach(track => track.stop());
-            });
-        } catch (error) {
-            const errorMessageElement = document.getElementById('error-message');
-            errorMessageElement.innerHTML = "No se encontró una cámara.";
+                // Close the camera stream when leaving the page.
+                window.addEventListener('beforeunload', () => {
+                    stream.getTracks().forEach(track => track.stop());
+                });
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+            }
         }
-    }
 
+        
     function scanQRCode(stream) {
         const video = document.getElementById('cameraFeed');
         const canvas = document.createElement('canvas');

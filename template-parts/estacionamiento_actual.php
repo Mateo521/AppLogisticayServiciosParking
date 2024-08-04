@@ -60,7 +60,6 @@ $total_items = $wpdb->get_var($prepared_count_query);
 
 
 
-
 function get_total_vehicles($selected_estacionamiento = null)
 {
     global $wpdb;
@@ -164,7 +163,43 @@ function get_total_items($selected_estacionamiento = null, $selected_categoria =
 }
 
 
+$current_datetime = new DateTime();
+$yesterday = clone $current_datetime;
+$yesterday->modify('-2 day');
+$yesterday_end = $yesterday->format('Y-m-d') . ' 23:59:59';
+$today_start = $current_datetime->format('Y-m-d') . ' 00:00:00';
 
+// Verificar si hay vehículos ingresados en el estacionamiento antes del inicio del día actual
+global $wpdb;
+$table_name_ingresos = $wpdb->prefix . 'parking_ingresos';
+$query = $wpdb->prepare(
+    "SELECT COUNT(*) FROM $table_name_ingresos WHERE estacionamiento = %d AND horario_ingreso <= %s",
+    $selected_estacionamiento,
+    $yesterday_end
+);
+$vehicles_left_yesterday = $wpdb->get_var($query);
+
+
+$show_modal = ($vehicles_left_yesterday > 0);
+
+
+
+if ($show_modal && $selected_estacionamiento && get_total_vehicles($selected_estacionamiento) > 0) {
+    echo "<script>
+  
+    document.addEventListener('DOMContentLoaded', function() {
+        var modal = document.getElementById('popup-modal');
+        document.body.classList.add('overflow-hidden');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex'); 
+               modal.setAttribute('aria-modal', 'true');
+            modal.setAttribute('role', 'dialog');
+
+
+         
+    });
+</script>";
+}
 
 
 // Calcular el número total de páginas 
@@ -189,9 +224,58 @@ $estacionamientos = [
 $current_categoria = isset($categorias[$selected_categoria]) ? $categorias[$selected_categoria] : "No seleccionado";
 $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ? $estacionamientos[$selected_estacionamiento] : "No seleccionado";
 ?>
+
+
+
+
+<button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
+    class="block hidden text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+    type="button">
+    Nota
+</button>
+
+<div id="popup-modal" tabindex="-1"
+    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button"
+                class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                data-modal-hide="popup-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                </svg>
+                <span class="sr-only">No, cerrar</span>
+            </button>
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Nota: todavía se encuentran
+                    <?php echo get_total_vehicles($selected_estacionamiento); ?> vehículos en el estacionamiento actual del día
+                    anterior. Desea restablecer los datos de ingreso vehicular?</h3>
+                <button id="confirm-delete" data-modal-hide="popup-modal" type="button"
+                    class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
+                    Si, estoy seguro
+                </button>
+                <button data-modal-hide="popup-modal" type="button"
+                    class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">No,
+                    cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
 <div class="flex justify-center">
     <div class="max-w-screen-2xl w-full">
-        <div class="flex justify-between w-full px-5 py-3 items-center">
+        <div class="flex justify-between w-full px-5 py-3 items-center flex-wrap gap-3">
             <p id="current-estacionamiento" class="p-3 text-gray-500 dark:text-gray-400">
                 Actual estacionamiento:
                 <strong
@@ -289,10 +373,10 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" class="md:px-6 px-2 py-3">ID</th>
-                        <th scope="col" class="md:px-6 px-2 py-3">Estacionamiento</th>
-                        <th scope="col" class="md:px-6 px-2 py-3">Categoría</th>
-                        <th scope="col" class="md:px-6 px-2 py-3">Horario de ingreso</th>
+                        <th scope="col" class="md:px-3 px-2 py-3">ID</th>
+                        <th scope="col" class="md:px-3 px-2 py-3">Estacionamiento</th>
+                        <th scope="col" class="md:px-3 px-2 py-3">Categoría</th>
+                        <th scope="col" class="md:px-3 px-2 py-3">Horario de ingreso</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -300,24 +384,23 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
                         <?php foreach ($ingresos as $ingreso): ?>
                             <tr
                                 class="odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700">
-                                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                <th scope="row" class="px-3 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                     <?php echo esc_html($ingreso['id']); ?>
                                 </th>
-                                <td class="px-6 py-4">
+                                <td class="px-3 py-4">
                                     <?php echo esc_html($estacionamientos[$ingreso['estacionamiento']] ?? 'Desconocido'); ?>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-3 py-4">
                                     <?php echo esc_html($categorias[$ingreso['categoria']] ?? 'Desconocido'); ?>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-3 py-4">
                                     <?php
                                     $date_format = get_option('date_format');
                                     $time_format = get_option('time_format');
-
                                     $datetime_format = $date_format . ' ' . $time_format;
 
-                                    $horario_ingreso_gmt = get_date_from_gmt($ingreso['horario_ingreso'], 'Y-m-d H:i:s');
-                                    $horario_ingreso_local = date_i18n($datetime_format, strtotime($horario_ingreso_gmt));
+                                    // Asumiendo que $egreso['horario_egreso'] está en formato 'Y-m-d H:i:s' en GMT
+                                    $horario_ingreso_local = date_i18n($datetime_format, strtotime($ingreso['horario_ingreso']));
 
                                     echo esc_html($horario_ingreso_local);
                                     ?>
@@ -326,7 +409,7 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="4" class="px-6 py-4 text-center">No hay datos disponibles</td>
+                            <td colspan="4" class="px-3 py-4 text-center">No hay datos disponibles</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -356,6 +439,64 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
     let ocupacion = 100;
 
     document.addEventListener('DOMContentLoaded', function () {
+
+
+
+
+
+
+        document.getElementById('confirm-delete').addEventListener('click', function() {
+        var selectedEstacionamiento = <?php echo json_encode($selected_estacionamiento); ?>;
+
+        fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                'action': 'transfer_ingresos_to_egresos',
+                'selected_estacionamiento': selectedEstacionamiento
+            })
+        })
+        .then(response => response.text())
+        .then(data => {
+            console.log('Success:', data);
+            // Aquí puedes cerrar el modal o hacer cualquier otra cosa que necesites después de la transferencia
+            document.getElementById('popup-modal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            document.querySelector('.bg-gray-900/50').remove();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         const dropdownEstacionamientoItems = document.querySelectorAll('.menu0');
         const dropdownEstacionamientoButton = document.getElementById('dropdownDefaultButton');
         const currentEstacionamientoText = document.getElementById('current-estacionamiento');
@@ -371,6 +512,7 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
         // Recuperar ocupacion del local storage si existe
         if (localStorage.getItem('ocupacion')) {
             ocupacion = parseInt(localStorage.getItem('ocupacion'));
+          
         }
 
         // Función para actualizar el texto del botón y el texto actual de estacionamiento
@@ -441,6 +583,7 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
                 updateDropdownEstacionamiento(selectionText, selectionValue);
                 console.log('Ocupacion actualizada:', ocupacion);
 
+        
                 // Redirigir a la primera página con el nuevo estacionamiento seleccionado
                 const currentUrl = new URL(window.location.href);
                 currentUrl.searchParams.set('estacionamiento', selectionValue);
@@ -473,21 +616,47 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
         if (document.getElementById("radial-chart") && typeof ApexCharts !== 'undefined') {
             const chart = new ApexCharts(document.querySelector("#radial-chart"), getChartOptions());
             chart.render();
+
+            setInterval(function() {
+                updateTimeComponent();
+        }, 1000);
+
+
         }
     });
 
+    function updateTimeComponent() {
+            let now = new Date();
+            let closingTime = new Date();
+            closingTime.setHours(23, 59, 0, 0);
+
+            let nowFormatted = now.toTimeString().split(' ')[0]; // Hora actual con segundos
+            let closingTimeFormatted = closingTime.toTimeString().split(' ')[0].substring(0, 5); // Hora de cierre sin segundos
+
+            let timeInfo = document.getElementById("time-info");
+            timeInfo.innerHTML = nowFormatted + " / " + closingTimeFormatted;
+        }
+
+
     function getChartOptions() {
-        console.log('Ocupacion dentro de getChartOptions:', ocupacion);
+
+
+
+
         let total = <?php echo $total_items ?>;
+
+        let oc = document.getElementById("dispo");
+        oc.innerHTML = total + "/" + ocupacion;
+
 
 
         // Calcular el porcentaje de cierre basado en la hora actual
         let now = new Date();
         let openingTime = new Date();
-        openingTime.setHours(6, 0, 0, 0); // Estacionamiento abre a las 7:00
+        openingTime.setHours(6, 0, 0, 0); 
 
         let closingTime = new Date();
-        closingTime.setHours(23, 59, 0, 0); // Estacionamiento cierra a las 23:59
+        closingTime.setHours(23, 59, 0, 0); 
 
         let totalMinutes = (closingTime - openingTime) / (1000 * 60); // Total de minutos desde las 7:00 hasta las 19:00
         let elapsedMinutes = (now - openingTime) / (1000 * 60); // Minutos transcurridos desde las 7:00 hasta ahora
@@ -502,6 +671,10 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
         let percentage = (parseInt(total) / ocupacion) * 100;
         percentage = percentage.toFixed(2);
         percentage = parseFloat(percentage)
+
+        updateTimeComponent();
+
+
         return {
 
             /*Disponibilidad - Cierre (restablecimiento de datos)*/
@@ -645,13 +818,13 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                         d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10ZM17 13h-2v-2a1 1 0 0 0-2 0v2h-2a1 1 0 0 0 0 2h2v2a1 1 0 0 0 2 0v-2h2a1 1 0 0 0 0-2Z" />
                 </svg>Datos</h5>
         </div>
-        <div class="grid grid-cols-2 gap-4 p-4 lg:grid-cols-1 " style="height:70vh;overflow-y:scroll;">
+        <div class="grid md:grid-cols-2 gap-4 p-4 grid-cols-1" style="height:70vh;overflow-y:scroll;">
 
 
 
             <div class="flex flex-col">
 
-         
+
 
 
 
@@ -660,7 +833,8 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                     <div class="flex justify-between mb-3">
                         <div class="flex items-center">
                             <div class="flex justify-center items-center">
-                                <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white pe-1">Estacionamiento actual</h5>
+                                <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white pe-1">
+                                    Estacionamiento actual</h5>
                                 <svg data-popover-target="chart-info" data-popover-placement="bottom"
                                     class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ms-1"
                                     aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
@@ -680,26 +854,29 @@ if (current_user_can('editor') || current_user_can('administrator')) {
 
                                             <?php
                                             $total_count = get_total_items_by_category_and_estacionamiento($selected_estacionamiento, 0);
-                                            echo "Personal docente: ".esc_html($total_count)."<br>"; 
+                                            echo "Personal docente: " . esc_html($total_count) . "<br>";
                                             $total_count = get_total_items_by_category_and_estacionamiento($selected_estacionamiento, 1);
-                                            echo "Personal no docente: ".esc_html($total_count)."<br>"; 
+                                            echo "Personal no docente: " . esc_html($total_count) . "<br>";
                                             $total_count = get_total_items_by_category_and_estacionamiento($selected_estacionamiento, 2);
-                                            echo "Alumnos: ".esc_html($total_count)."<br>"; 
+                                            echo "Alumnos: " . esc_html($total_count) . "<br>";
                                             $total_count = get_total_items_by_category_and_estacionamiento($selected_estacionamiento, 3);
-                                            echo "Visitas: ".esc_html($total_count); 
-                                           ?>
+                                            echo "Visitas: " . esc_html($total_count);
+                                            ?>
 
-                                   
-                                       
-                                     
+
+
+
 
 
 
                                         </p>
                                         <h3 class="font-semibold text-gray-900 dark:text-white">Cálculo</h3>
-                                        <p>Se basa unicamente por estacionamiento seleccionado en ingresos manuales o por escaneo QR</p>
+                                        <p>Se basa unicamente por estacionamiento seleccionado en ingresos manuales o por
+                                            escaneo QR</p>
                                         <a href="#"
-                                            class="flex items-center font-medium text-blue-600 dark:text-blue-500 dark:hover:text-blue-600 hover:text-blue-700 hover:underline">La torta muestran los datos de ingreso. Si un vehículo egresa no se tomará en cuenta <svg class="w-2 h-2 ms-1.5 rtl:rotate-180" aria-hidden="true"
+                                            class="flex items-center font-medium text-blue-600 dark:text-blue-500 dark:hover:text-blue-600 hover:text-blue-700 hover:underline">La
+                                            torta muestran los datos de ingreso. Si un vehículo egresa no se tomará en
+                                            cuenta <svg class="w-2 h-2 ms-1.5 rtl:rotate-180" aria-hidden="true"
                                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                                     stroke-width="2" d="m1 9 4-4-4-4" />
@@ -716,20 +893,19 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                             <dl
                                 class="bg-orange-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
                                 <dt
-                                    class="w-8 h-8 rounded-full bg-orange-100 dark:bg-gray-500 text-orange-600 dark:text-orange-300 text-sm font-medium flex items-center justify-center mb-1">
-                                    12</dt>
-                                <dd class="text-orange-600 dark:text-orange-300 text-sm font-medium">Disponibilidad x/total</dd>
+                                    class="w-8 h-8 rounded-full bg-orange-100 dark:bg-gray-500 text-orange-600 dark:text-orange-300 text-sm font-medium flex items-center justify-center mb-1" id="dispo">
+                                    </dt>
+                                <dd class="text-orange-600 dark:text-orange-300 text-sm font-medium" >Disponibilidad/Total
+                                </dd>
                             </dl>
-                            <dl
-                                class="bg-teal-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
-                                <dt
-                                    class="w-8 h-8 rounded-full bg-teal-100 dark:bg-gray-500 text-teal-600 dark:text-teal-300 text-sm font-medium flex items-center justify-center mb-1">
-                                    23</dt>
-                                <dd class="text-teal-600 dark:text-teal-300 text-sm font-medium">Cierre hora actual / hora cierre</dd>
-                            </dl>
+                            <dl id="time-component" class="bg-teal-50 dark:bg-gray-600 rounded-lg flex flex-col items-center justify-center h-[78px]">
+        <dt id="time-info" class=" h-8 rounded-full bg-teal-100 dark:bg-gray-500 text-teal-600 dark:text-teal-300 text-sm font-medium flex items-center justify-center mb-1  w-max px-2"></dt>
+        <dd class="text-teal-600 dark:text-teal-300 text-sm font-medium">Hora actual / Hora cierre</dd>
+    </dl>
                         </div>
                         <button data-collapse-toggle="more-details" type="button"
-                            class="hover:underline text-xs text-gray-500 dark:text-gray-400 font-medium inline-flex items-center">Mostrar mas detalles <svg class="w-2 h-2 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                            class="hover:underline text-xs text-gray-500 dark:text-gray-400 font-medium inline-flex items-center">Mostrar
+                            mas detalles <svg class="w-2 h-2 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                 fill="none" viewBox="0 0 10 6">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="m1 1 4 4 4-4" />
@@ -738,7 +914,8 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                         <div id="more-details"
                             class="border-gray-200 border-t dark:border-gray-600 pt-3 mt-3 space-y-2 hidden">
                             <dl class="flex items-center justify-between">
-                                <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Horario con mayor cantidad de vehículos en promedio:
+                                <dt class="text-gray-500 dark:text-gray-400 text-sm font-normal">Horario con mayor cantidad
+                                    de vehículos en promedio:
                                 </dt>
                                 <dd
                                     class="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md dark:bg-green-900 dark:text-green-300">
@@ -771,7 +948,7 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                     <div
                         class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
                         <div class="flex justify-between items-center pt-5">
-                       
+
                             <a href="#"
                                 class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
                                 Compartir
@@ -839,8 +1016,8 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                                     <div data-popper-arrow></div>
                                 </div>
                             </div>
-                       
-                        
+
+
                         </div>
                         <div class="flex justify-end items-center">
                             <button id="widgetDropdownButton" data-dropdown-toggle="widgetDropdown"
@@ -912,7 +1089,7 @@ if (current_user_can('editor') || current_user_can('administrator')) {
                         class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
                         <div class="flex justify-between items-center pt-5">
                             <!-- Button -->
-                           
+
                             <a href="#"
                                 class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
                                 COMPARTIR
@@ -1000,7 +1177,7 @@ $category_counts = $wpdb->get_results($prepared_query, ARRAY_A);
 
     const categoryItems = <?php echo $json_items; ?>;
 
-    console.log(categoryItems);
+
 
     const getChartOptions2 = () => {
         return {
