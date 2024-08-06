@@ -14,6 +14,9 @@ function agregar_scripts_y_estilos() {
 
 //Temporal Flowbite
     wp_enqueue_style( 'flowbite', 'https://cdn.jsdelivr.net/npm/flowbite@2.4.1/dist/flowbite.min.css', array() );
+
+
+
     
 
     wp_enqueue_script('instascan', get_template_directory_uri() . '/src/instascan.min.js', array() );
@@ -34,17 +37,57 @@ add_action('wp_enqueue_scripts', 'agregar_scripts_y_estilos');
 
 
 
-
+/*
 function restrict_admin_access_for_editors() {
     $user = wp_get_current_user();
-    if ( in_array( 'editor', (array) $user->roles ) && is_admin() && !defined( 'DOING_AJAX' ) ) {
-        wp_redirect( home_url() );
-        exit;
+    
+    // Verificar si el usuario es un editor
+    if ( in_array( 'editor', (array) $user->roles ) ) {
+        // Permitir el acceso a la página de administración de formularios
+        $allowed_pages = array(
+            'admin-post.php', // Para el manejo de formularios
+            'admin-ajax.php'  // Para las peticiones AJAX
+        );
+        
+        // Verificar la URL actual
+        $current_screen = get_current_screen();
+        $current_page = isset($current_screen->id) ? $current_screen->id : '';
+
+        // Redirigir a la página de inicio si el usuario está intentando acceder a una página de administración no permitida
+        if ( is_admin() && !defined( 'DOING_AJAX' ) && !in_array($current_page, $allowed_pages) ) {
+            wp_redirect( home_url() );
+            exit;
+        }
     }
 }
 add_action( 'admin_init', 'restrict_admin_access_for_editors' );
+*/
 
 
+function redirect_editors_after_login($redirect_to, $requested_redirect_to, $user) {
+    // Verificar si $user es un objeto WP_User y tiene el rol de editor
+    if ($user instanceof WP_User && in_array('editor', (array) $user->roles)) {
+        // Redirigir a la página principal después del inicio de sesión
+        return home_url();
+    }
+
+    // En caso de que el usuario no sea editor, usar el redireccionamiento predeterminado
+    return $redirect_to;
+}
+add_filter('login_redirect', 'redirect_editors_after_login', 10, 3);
+
+
+function redirect_authors_after_login($redirect_to, $requested_redirect_to, $user) {
+    // Verificar si $user es un objeto WP_User y tiene el rol de editor
+    if ($user instanceof WP_User && in_array('author', (array) $user->roles)) {
+        // Redirigir a la página principal después del inicio de sesión
+        return home_url();
+    }
+
+    // En caso de que el usuario no sea autor, usar el redireccionamiento predeterminado
+    return $redirect_to;
+}
+add_filter('login_redirect', 'redirect_authors_after_login', 10, 3);
 
 
 
@@ -66,6 +109,23 @@ function restrict_admin_access_for_subscribers() {
     }
 }
 add_action( 'admin_init', 'restrict_admin_access_for_subscribers' );
+
+
+function disable_admin_bar_for_specific_roles() {
+    // Obtener el usuario actual
+    $current_user = wp_get_current_user();
+
+    // Roles para los que queremos deshabilitar la barra de administración
+    $roles_to_disable = ['subscriber', 'editor' ,'author'];
+
+    // Verificar si el usuario tiene alguno de los roles especificados
+    if (array_intersect($roles_to_disable, $current_user->roles)) {
+        // Deshabilitar la barra de administración
+        add_filter('show_admin_bar', '__return_false');
+    }
+}
+add_action('after_setup_theme', 'disable_admin_bar_for_specific_roles');
+
 
 
 
@@ -98,7 +158,29 @@ add_action( 'template_redirect', 'restrict_access_to_logged_in_users' );
 
 
 
+add_action('admin_post_edit_estacionamiento', 'handle_edit_estacionamiento');
 
+function handle_edit_estacionamiento() {
+    /*
+    if (!current_user_can('edit_users')) {
+        wp_die('No tienes permisos para realizar esta acción.');
+    }
+*/
+    $user_id = intval($_POST['user_id']);
+    $estacionamiento = sanitize_text_field($_POST['estacionamiento']);
+
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'estacionamientos';
+
+    $wpdb->update(
+        $table_name,
+        array('estacionamiento' => $estacionamiento),
+        array('user_id' => $user_id)
+    );
+
+    wp_redirect(home_url('/ajustes/'));
+    exit;
+}
 
 
 
@@ -255,18 +337,19 @@ function handle_delete_oldest_ingreso() {
 
             if ($result_delete === false) {
                 error_log('Error deleting data: ' . $wpdb->last_error);
+                $_SESSION['message'] = 'Error eliminando el vehículo.';
             } else {
                 error_log('Deleted from ingresos ID: ' . $oldest_ingreso->id);
+                $_SESSION['message'] = 'Vehículo eliminado con éxito.';
             }
         } else {
             error_log('Error inserting data into egresos: ' . $wpdb->last_error);
+            $_SESSION['message'] = 'Error insertando datos en la tabla de egresos.';
         }
     } else {
         error_log('No record found to move');
+        $_SESSION['message'] = 'No se encontró ningún vehículo para eliminar.';
     }
-
-    $_SESSION['message'] = 'Vehículo eliminado con éxito';
-
 
     $redirect_url = isset($_POST['redirect_url2']) ? esc_url_raw($_POST['redirect_url2']) : home_url('/leerqr/');
     wp_redirect($redirect_url);
@@ -382,3 +465,23 @@ function transfer_ingresos_to_egresos($selected_estacionamiento) {
 
 
 
+
+
+function create_estacionamientos_table() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'estacionamientos';
+
+    $charset_collate = $wpdb->get_charset_collate();
+
+    $sql = "CREATE TABLE $table_name (
+        id mediumint(9) NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) NOT NULL,
+        estacionamiento int(11) NOT NULL,
+        PRIMARY KEY  (id)
+    ) $charset_collate;";
+
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+}
+
+add_action('after_switch_theme', 'create_estacionamientos_table');

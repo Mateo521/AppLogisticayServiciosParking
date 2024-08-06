@@ -16,9 +16,9 @@
 <body <?php body_class(); ?>>
 
 
+<div class="relative w-full" style="height:112px;"></div>
 
-
-<nav class="bg-white border-gray-200 dark:bg-blue-900 border-b-blue-900 border-b-4">
+<nav class="bg-white border-gray-200 dark:bg-blue-900 border-b-blue-900 border-b-4 fixed w-full top-0 z-50">
   <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
     <a href="<?php echo site_url('/'); ?>" class="flex items-center space-x-3 rtl:space-x-reverse">
 
@@ -48,16 +48,18 @@ if ( current_user_can( 'editor' ) || current_user_can( 'administrator' ) ) {
 ?>
 
         <li>
-          <a href="#" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Ajustes (admin)</a>
+          <a href="<?php echo site_url('/ajustes/'); ?>" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Ajustes (admin)</a>
         </li>
+        <li>
+    <a href="<?php echo wp_logout_url(); ?>" class="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Cerrar sesión</a>
+</li>
 
-
-        <!-- drawer init and toggle -->
-<div class="text-center">
+    
+<!--div class="text-center">
    <button class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5  dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" type="button" data-drawer-target="drawer-swipe" data-drawer-show="drawer-swipe" data-drawer-placement="bottom" data-drawer-edge="true" data-drawer-edge-offset="bottom-[60px]" aria-controls="drawer-swipe">
    Datos
    </button>
-</div>
+</div-->
 
 
 <?php
