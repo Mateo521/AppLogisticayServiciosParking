@@ -51,46 +51,84 @@ if (isset($_SESSION['message'])):
    
    
 </div>
-<div class="flex w-full justify-center">
+<?php
+// Obtener datos del usuario actual
+$current_user = wp_get_current_user();
+$user_id = $current_user->ID;
+$user_role = $current_user->roles[0];
+
+// Obtener estacionamiento desde la base de datos
+global $wpdb;
+$table_name = $wpdb->prefix . 'estacionamientos';
+$estacionamiento = $wpdb->get_var($wpdb->prepare("SELECT estacionamiento FROM $table_name WHERE user_id = %d", $user_id));
+
+// Si el usuario es un autor, bloquear la selección de estacionamiento
+if ($user_role === 'author') {
+    $selected_estacionamiento = $estacionamiento;
+} else {
+    $selected_estacionamiento = isset($_GET['estacionamiento']) ? intval($_GET['estacionamiento']) : null;
+}
+
+// Obtener el nombre del estacionamiento seleccionado
+$selected_estacionamiento_name = get_estacionamiento_name($selected_estacionamiento);
 
 
+function get_estacionamiento_name($estacionamiento_id)
+{
+    switch ($estacionamiento_id) {
+        case 1:
+            return 'Bloque III';
+        case 2:
+            return 'Bloque IV';
+        case 3:
+            return 'Subsuelo y Rectorado';
+        case 4:
+            return 'Chacabuco y Pedernera';
+    }
+}
+?>
 
-    <div class="flex flex-wrap gap-5 p-2 justify-center">
-        <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown"
-            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            type="button">Seleccione la opción... <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="m1 1 4 4 4-4" />
-            </svg>
-        </button>
 
-        <!-- Dropdown menu -->
-        <div id="dropdown"
-            class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
-            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-                <li>
-                    <a href="#" data-value="1"
-                        class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque
-                        III</a>
-                </li>
-                <li>
-                    <a href="#" data-value="2"
-                        class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque
-                        IV</a>
-                </li>
-                <li>
-                    <a href="#" data-value="3"
-                        class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Subsuelo
-                        y Rectorado</a>
-                </li>
-                <li>
-                    <a href="#" data-value="4"
-                        class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Chacabuco
-                        y Pedernera</a>
-                </li>
-            </ul>
-        </div>
+<div class="flex flex-wrap gap-5 p-2 justify-center">
+<?php if ($user_role !== 'author'): ?>
+
+    
+    <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown"
+        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        type="button" <?php echo $user_role === 'author' ? 'disabled' : ''; ?>>
+        <?php echo $selected_estacionamiento_name ? $selected_estacionamiento_name : 'Seleccione la opción...'; ?>
+        <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4" />
+        </svg>
+    </button>
+
+    <!-- Dropdown menu -->
+  
+    <div id="dropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+        <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
+            <li>
+                <a href="#" data-value="1" class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque III</a>
+            </li>
+            <li>
+                <a href="#" data-value="2" class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Bloque IV</a>
+            </li>
+            <li>
+                <a href="#" data-value="3" class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Subsuelo y Rectorado</a>
+            </li>
+            <li>
+                <a href="#" data-value="4" class="dropdown-item block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Chacabuco y Pedernera</a>
+            </li>
+        </ul>
+    </div>
+    <?php else: ?>
+                                <div
+                                    class="text-white bg-gray-700 font-medium rounded-lg md:rounded-l-lg  text-sm h-max px-5 py-2.5 text-center inline-flex items-center ">
+                                    Estacionamiento: <?php echo get_estacionamiento_name($selected_estacionamiento); ?>
+                                    <input type="hidden" id="estacionamiento-index" name="estacionamiento_index"
+                                        value="<?php echo $selected_estacionamiento; ?>">
+                                </div>
+                            <?php endif; ?>
+
 
         <form id="form1" class="flex items-center max-w-sm mx-auto" method="post"
             action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
@@ -107,8 +145,9 @@ if (isset($_SESSION['message'])):
                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="Categorías..." required />
                 <input type="hidden" id="categoria_index" name="categoria_index" value="">
-                <input type="hidden" id="estacionamiento_index" name="estacionamiento_index" value="">
-                <!-- Asegúrate de que este campo esté aquí -->
+                <input type="hidden" id="estacionamiento_index" name="estacionamiento_index" value="<?php echo esc_attr($selected_estacionamiento); ?>">
+
+                
                 <input type="hidden" name="action" value="insert_ingreso">
 
             </div>
@@ -358,7 +397,8 @@ if (isset($_SESSION['message'])):
 
 
 
-                estacionamientoIndex = document.getElementById('estacionamiento_index').value
+                estacionamientoIndex = document.getElementById('estacionamiento_index').value;
+                
                 var categoriaIndex = document.getElementById('categoria_index').value;
                 document.getElementById('estacionamiento_index2').value = estacionamientoIndex;
 
