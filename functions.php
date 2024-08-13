@@ -13,9 +13,10 @@ function agregar_scripts_y_estilos() {
     wp_enqueue_style( 'tailwind', get_template_directory_uri() . '/src/output.css', array() );
 
 //Temporal Flowbite
-    wp_enqueue_style( 'flowbite', 'https://cdn.jsdelivr.net/npm/flowbite@2.4.1/dist/flowbite.min.css', array() );
+ //   wp_enqueue_style( 'flowbite', 'https://cdn.jsdelivr.net/npm/flowbite@2.4.1/dist/flowbite.min.css', array() );
 
 
+    wp_enqueue_script( 'flowbite', 'https://cdn.tailwindcss.com', array() );
 
     
 
@@ -246,14 +247,32 @@ function get_parking_ingresos() {
 
 // Función para insertar un ingreso
 function handle_insert_ingreso() {
+    $redirect_url = isset($_POST['redirect_url']) ? esc_url_raw($_POST['redirect_url']) : home_url('/leerqr/');
+    // Validar si los campos necesarios están presentes
     if (!isset($_POST['categoria_index']) || !isset($_POST['estacionamiento_index']) || !isset($_POST['action']) || $_POST['action'] !== 'insert_ingreso') {
         error_log('Invalid POST data');
-        wp_redirect(home_url('/leerqr/'));
+        wp_redirect($redirect_url);
         exit;
     }
 
     $categoria_index = intval($_POST['categoria_index']);
-    $estacionamiento = sanitize_text_field($_POST['estacionamiento_index']);
+    $estacionamiento = intval($_POST['estacionamiento_index']);
+
+    // Validar los valores de estacionamiento y categoría
+    $valid_estacionamientos = array(1, 2, 3, 4);
+    $valid_categorias = array(0, 1, 2, 3);
+
+    if (!in_array($estacionamiento, $valid_estacionamientos, true)) {
+        $_SESSION['error_message'] = 'Error: Estacionamiento inválido.';
+        wp_redirect($redirect_url);
+        exit;
+    }
+
+    if (!in_array($categoria_index, $valid_categorias, true)) {
+        $_SESSION['error_message'] = 'Error: Categoría inválida.';
+        wp_redirect($redirect_url);
+        exit;
+    }
 
     global $wpdb;
     $table_name = $wpdb->prefix . 'parking_ingresos';
@@ -274,18 +293,19 @@ function handle_insert_ingreso() {
 
     if ($result === false) {
         error_log('Error inserting data: ' . $wpdb->last_error);
+        $_SESSION['error_message'] = 'Error al ingresar el vehículo.';
     } else {
         error_log('Data inserted successfully');
+        $_SESSION['message'] = 'Vehículo ingresado con éxito';
     }
 
     // Obtener la URL de redirección desde el formulario
-    $_SESSION['message'] = 'Vehículo ingresado con éxito';
 
-    $redirect_url = isset($_POST['redirect_url']) ? esc_url_raw($_POST['redirect_url']) : home_url('/leerqr/');
     wp_redirect($redirect_url);
     exit;
 }
 add_action('admin_post_insert_ingreso', 'handle_insert_ingreso');
+
 
 // Función para eliminar el ingreso más antiguo e insertar en egresos
 function handle_delete_oldest_ingreso() {
@@ -485,3 +505,104 @@ function create_estacionamientos_table() {
 }
 
 add_action('after_switch_theme', 'create_estacionamientos_table');
+
+
+
+
+
+
+
+function crear_tabla_ajustes() {
+    global $wpdb;
+    $tabla = $wpdb->prefix . 'ajustes_estacionamiento';
+    $charset_collate = $wpdb->get_charset_collate();
+
+    $sql = "CREATE TABLE IF NOT EXISTS $tabla (
+        id mediumint(9) NOT NULL AUTO_INCREMENT,
+        capacidad_bloque_iii int NOT NULL,
+        capacidad_bloque_iv int NOT NULL,
+        capacidad_subsuelo_rectorado int NOT NULL,
+        capacidad_chacabuco_pedernera int NOT NULL,
+        horario_ingreso time NOT NULL,
+        horario_egreso time NOT NULL,
+        PRIMARY KEY (id)
+    ) $charset_collate;";
+
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+
+    // Insertar fila si no existe
+    if ($wpdb->get_var("SELECT COUNT(*) FROM $tabla") == 0) {
+        $wpdb->insert($tabla, array(
+            'capacidad_bloque_iii' => 0,
+            'capacidad_bloque_iv' => 0,
+            'capacidad_subsuelo_rectorado' => 0,
+            'capacidad_chacabuco_pedernera' => 0,
+            'horario_ingreso' => '09:00:00',
+            'horario_egreso' => '18:00:00'
+        ));
+    }
+}
+add_action('after_setup_theme', 'crear_tabla_ajustes');
+
+
+
+
+function actualizar_capacidad_estacionamiento() {
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['capacidad'])) {
+        global $wpdb;
+        $tabla = $wpdb->prefix . 'ajustes_estacionamiento';
+        
+        $capacidad = intval($_POST['capacidad']);
+        $categoria = sanitize_text_field($_POST['categoria']);
+    
+        $columna = '';
+        switch ($categoria) {
+            case 'Bloque III':
+                $columna = 'capacidad_bloque_iii';
+                break;
+            case 'Bloque IV':
+                $columna = 'capacidad_bloque_iv';
+                break;
+            case 'Subsuelo y Rectorado':
+                $columna = 'capacidad_subsuelo_rectorado';
+                break;
+            case 'Chacabuco y Pedernera':
+                $columna = 'capacidad_chacabuco_pedernera';
+                break;
+        }
+    
+        if ($columna) {
+            $wpdb->update($tabla, array($columna => $capacidad), array('id' => 1));
+        }
+    }
+
+
+    wp_redirect(home_url('/ajustes/'));
+    
+}
+add_action('admin_post_actualizar_capacidad_estacionamiento', 'actualizar_capacidad_estacionamiento');
+
+
+
+
+function actualizar_horarios_estacionamiento() {
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['horario_ingreso']) && isset($_POST['horario_egreso'])) {
+        global $wpdb;
+        $tabla = $wpdb->prefix . 'ajustes_estacionamiento';
+        
+        $horario_ingreso = sanitize_text_field($_POST['horario_ingreso']);
+        $horario_egreso = sanitize_text_field($_POST['horario_egreso']);
+    
+        $wpdb->update($tabla, array(
+            'horario_ingreso' => $horario_ingreso,
+            'horario_egreso' => $horario_egreso
+        ), array('id' => 1));
+    }
+
+    wp_redirect(home_url('/ajustes/'));
+    
+}
+add_action('admin_post_actualizar_horarios_estacionamiento', 'actualizar_horarios_estacionamiento');
+
+

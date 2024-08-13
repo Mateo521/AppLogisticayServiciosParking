@@ -395,7 +395,26 @@ for ($i = 0; $i < $length; $i++) {
     $total_data[] = $sum;
 }
 
+// Calcular la fecha de ayer
 $yesterday = date('Y-m-d', strtotime($end_date . ' -1 day'));
+
+// Verificar si hay datos para $yesterday y ajustarlo si es necesario
+$data_check_query = "SELECT COUNT(*) FROM $table_egresos WHERE DATE(horario_egreso) = %s";
+if (!empty($selected_estacionamiento)) {
+    $data_check_query .= " AND estacionamiento = %d";
+}
+$data_check_query = $wpdb->prepare($data_check_query, $yesterday, $selected_estacionamiento);
+$data_exists_yesterday = $wpdb->get_var($data_check_query);
+
+// Si no hay datos para $yesterday, buscar la última fecha con datos antes de $yesterday
+if ($data_exists_yesterday == 0) {
+    $last_valid_date_query_yesterday = "SELECT MAX(DATE(horario_egreso)) AS last_valid_date FROM $table_egresos WHERE DATE(horario_egreso) < %s";
+    if (!empty($selected_estacionamiento)) {
+        $last_valid_date_query_yesterday .= " AND estacionamiento = %d";
+    }
+    $last_valid_date_query_yesterday = $wpdb->prepare($last_valid_date_query_yesterday, $yesterday, $selected_estacionamiento);
+    $yesterday = $wpdb->get_var($last_valid_date_query_yesterday);
+}
 
 // Calcular totales
 $total_today = isset($data[$end_date]) ? array_sum($data[$end_date]) : 0;
@@ -408,6 +427,7 @@ if ($total_yesterday > 0) {
 }
 
 $percentage_change = number_format($percentage_change, 2);
+
 ?>
 <script>
     const percentageChange = <?php echo $percentage_change; ?>;

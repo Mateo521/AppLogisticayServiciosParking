@@ -163,10 +163,15 @@ function get_total_items($selected_estacionamiento = null, $selected_categoria =
     }
 }
 
-
 $current_datetime = new DateTime();
+
+
+
 $yesterday = clone $current_datetime;
-$yesterday->modify('-1 day');
+
+
+
+$yesterday->modify('-2 days');
 $yesterday_end = $yesterday->format('Y-m-d') . ' 23:59:59';
 $today_start = $current_datetime->format('Y-m-d') . ' 00:00:00';
 
@@ -241,8 +246,8 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
                 <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
-                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Nota: todavía se encuentran
-                    <?php echo get_total_vehicles($selected_estacionamiento); ?> vehículos en el estacionamiento actual
+                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Nota: todavía se encuentra/n
+                    <?php echo get_total_vehicles($selected_estacionamiento); ?> vehículo/s en el estacionamiento actual
                     del día
                     anterior. Desea restablecer los datos de ingreso vehicular?
                 </h3>
