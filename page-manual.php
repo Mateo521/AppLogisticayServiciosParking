@@ -154,7 +154,7 @@ if (isset($_SESSION['message'])):
                                 <option value="1" selected>Personal no docente</option>
                                 <option value="0">Personal docente</option>
                                 <option value="3">Visitas</option>
-                                <option value="2">Alumnos</option>
+                                <option value="2">Estudiantes</option>
                             </select>
 
                             <button type="submit"
@@ -262,7 +262,7 @@ if (isset($_SESSION['message'])):
                             <option value="1" selected>Personal no docente</option>
                             <option value="0">Personal docente</option>
                             <option value="3">Visitas</option>
-                            <option value="2">Alumnos</option>
+                            <option value="2">Estudiantes</option>
                         </select>
 
                         <button id="delete-oldest-button" type="submit"

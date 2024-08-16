@@ -367,7 +367,7 @@ function get_estacionamiento_name($estacionamiento_id)
             if (code) {
                 var decoded = base64Decode(code.data);
 
-                const categorias = ["Personal docente", "Personal no docente", "Alumno", "Visita"];
+                const categorias = ["Personal docente", "Personal no docente", "Estudiantes", "Visita"];
 
                 let k = decoded.substring(1, 2);
                 let index = parseInt(k, 10);

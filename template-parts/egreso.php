@@ -98,7 +98,7 @@ $total_pages = ceil($total_e_items / $per_page);
 $categorias = [
     0 => "Personal docente",
     1 => "Personal no docente",
-    2 => "Alumnos",
+    2 => "Estudiantes",
     3 => "Visitas"
 ];
 
@@ -370,7 +370,7 @@ $categories = array_keys($data);
 $series_data = [
     array_fill(0, count($categories), 0), // Personal docente
     array_fill(0, count($categories), 0), // Personal no docente
-    array_fill(0, count($categories), 0), // Alumnos
+    array_fill(0, count($categories), 0), // Estudiantes
     array_fill(0, count($categories), 0)  // Visitas
 ];
 
@@ -507,7 +507,7 @@ $categories = array_map(function ($date) {
                     color: "#7E3BF2",
                 },
                 {
-                    name: "Alumnos",
+                    name: "Estudiantes",
                     data: <?php echo json_encode($series_data[2]); ?>,
                     color: "#00A56B",
                 },
