@@ -250,33 +250,33 @@ $current_estacionamiento = isset($estacionamientos[$selected_estacionamiento]) ?
                 <span class="sr-only">No, cerrar</span>
             </button>
             <div class="p-4 md:p-5 text-center">
-    <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true"
-        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-    </svg>
-    <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Nota: todavía se encuentra/n
-        <?php echo get_total_vehicles($selected_estacionamiento); ?> vehículo/s en el estacionamiento actual
-        del día anterior. Desea restablecer los datos de ingreso vehicular?
-    </h3>
-    <button id="confirm-delete" data-modal-hide="popup-modal" type="button"
-        class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
-        Si, estoy seguro
-    </button>
-    <button data-modal-hide="popup-modal" type="button"
-        class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
-        No, cerrar
-    </button>
-</div>
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Nota: todavía se encuentra/n
+                    <?php echo get_total_vehicles($selected_estacionamiento); ?> vehículo/s en el estacionamiento actual
+                    del día anterior. Desea restablecer los datos de ingreso vehicular?
+                </h3>
+                <button id="confirm-delete" data-modal-hide="popup-modal" type="button"
+                    class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
+                    Si, estoy seguro
+                </button>
+                <button data-modal-hide="popup-modal" type="button"
+                    class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                    No, cerrar
+                </button>
+            </div>
 
-<script>
-document.getElementById('confirm-delete').addEventListener('click', function() {
-   
-    setTimeout(function() {
-        location.reload();
-    }, 3000); 
-});
-</script>
+            <script>
+                document.getElementById('confirm-delete').addEventListener('click', function () {
+
+                    setTimeout(function () {
+                        location.reload();
+                    }, 3000);
+                });
+            </script>
 
 
         </div>
@@ -463,9 +463,20 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
         </div>
     </div>
 </div>
+
 <script>
     let ocupacion = 100;
+<?
+    global $wpdb;
+$tabla = $wpdb->prefix . 'ajustes_estacionamiento';
+$result = $wpdb->get_row("SELECT capacidad_bloque_iii, capacidad_bloque_iv, capacidad_subsuelo_rectorado, capacidad_chacabuco_pedernera FROM $tabla WHERE id = 1", ARRAY_A);
 
+$capacidad_bloque_iii = $result['capacidad_bloque_iii'];
+$capacidad_bloque_iv = $result['capacidad_bloque_iv'];
+$capacidad_subsuelo_rectorado = $result['capacidad_subsuelo_rectorado'];
+$capacidad_chacabuco_pedernera = $result['capacidad_chacabuco_pedernera'];
+
+?>
     document.addEventListener('DOMContentLoaded', function () {
 
 /*
@@ -537,7 +548,10 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
     const currentEstacionamientoText = document.getElementById('current-estacionamiento');
     const estacionamientoInput = document.getElementById('estacionamiento_index');
     const selectedEstacionamiento = estacionamientoInput ? estacionamientoInput.value : null;
-
+    let capacidadBloqueIII = <?php echo $capacidad_bloque_iii; ?>;
+    let capacidadBloqueIV = <?php echo $capacidad_bloque_iv; ?>;
+    let capacidadSubsueloRectorado = <?php echo $capacidad_subsuelo_rectorado; ?>;
+    let capacidadChacabucoPedernera = <?php echo $capacidad_chacabuco_pedernera; ?>;
     const dropdownCategoriaItems = document.querySelectorAll('.menu1');
     const dropdownCategoriaButton = document.getElementById('dropdownDefaultButton2');
     const currentCategoriaText = document.getElementById('current-categoria');
@@ -594,23 +608,23 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
             3 Subsuelo y Rectorado
             4 Chacabuco y Pedernera
             */
+
             switch (parseInt(selectionValue)) {
-                case 1:
-                    ocupacion = 55;
-                    break;
-                case 2:
-                    ocupacion = 60;
-                    break;
-                case 3:
-                    ocupacion = 76;
-                    break;
-                case 4:
-                    ocupacion = 43;
-                    break;
-                default:
-                    ocupacion = 1;
-                    break;
-            }
+            case 1:
+                ocupacion = capacidadBloqueIII; // Bloque III
+                break;
+            case 2:
+                ocupacion = capacidadBloqueIV; // Bloque IV
+                break;
+            case 3:
+                ocupacion = capacidadSubsueloRectorado; // Subsuelo y Rectorado
+                break;
+            case 4:
+                ocupacion = capacidadChacabucoPedernera; // Chacabuco y Pedernera
+                break;
+            default:
+                ocupacion = 0; 
+        }
 
             // Guardar ocupacion en el local storage
             localStorage.setItem('ocupacion', ocupacion);
@@ -660,15 +674,38 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
     }
     });
 
+    <?php
+    global $wpdb;
+    $tabla = $wpdb->prefix . 'ajustes_estacionamiento'; // Ajusta el nombre de la tabla
+    $result = $wpdb->get_row("SELECT horario_ingreso, horario_egreso FROM $tabla WHERE id = 1", ARRAY_A);
+
+    $horario_ingreso = $result['horario_ingreso'];
+    $horario_egreso = $result['horario_egreso'];
+
+    ?>
+     let openingTimePHP = "<?php echo esc_js($horario_ingreso); ?>";
+     let closingTimePHP = "<?php echo esc_js($horario_egreso); ?>";
+
+
     function updateTimeComponent() {
 
         let now = new Date();
         let openingTime = new Date();
-        openingTime.setHours(6, 0, 0, 0); // Hora de apertura
+
+
 
 
         let closingTime = new Date();
-        closingTime.setHours(23, 59, 0, 0);
+      
+        
+                // Dividir los valores en horas y minutos
+        let openingTimeParts = openingTimePHP.split(':');
+        let closingTimeParts = closingTimePHP.split(':');
+
+        // Establecer la hora de apertura y cierre
+        openingTime.setHours(openingTimeParts[0], openingTimeParts[1], 0, 0);
+        closingTime.setHours(closingTimeParts[0], closingTimeParts[1], 0, 0);
+
 
         let nowFormatted = now.toTimeString().split(' ')[0]; // Hora actual con segundos
         let closingTimeFormatted = closingTime.toTimeString().split(' ')[0].substring(0, 5); // Hora de cierre sin segundos
@@ -681,6 +718,8 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
     function getChartOptions() {
 
 
+     
+
 
 
         let total = <?php echo $total_items ?>;
@@ -689,12 +728,25 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
         oc.innerHTML = total + "/" + ocupacion;
 
 
+        if (total >= ocupacion) {
+            mostrarModal();
+        }
+    
+
         let now = new Date(); // Hora actual
         let openingTime = new Date();
-        openingTime.setHours(6, 0, 0, 0); // Hora de apertura
+    
 
         let closingTime = new Date();
-        closingTime.setHours(23, 59, 0, 0); // Hora de cierre
+
+
+          // Establecer la hora de apertura y cierre
+              // Dividir los valores en horas y minutos
+        let openingTimeParts = openingTimePHP.split(':');
+        let closingTimeParts = closingTimePHP.split(':');
+
+          openingTime.setHours(openingTimeParts[0], openingTimeParts[1], 0, 0);
+        closingTime.setHours(closingTimeParts[0], closingTimeParts[1], 0, 0);
 
 
         let totalMinutes = (closingTime - openingTime) / (1000 * 60);
@@ -783,6 +835,26 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
             }
         };
     }
+
+
+    function mostrarModal() {
+        const modal = document.querySelector('#popup-modal_max');
+        modal.classList.remove('hidden'); // Muestra el modal
+        modal.classList.add('flex'); // Asegura que se muestre correctamente
+    }
+
+    // Función para ocultar el modal cuando se cierra
+    function ocultarModal() {
+        const modal = document.querySelector('#popup-modal_max');
+        modal.classList.add('hidden'); // Oculta el modal
+        modal.classList.remove('flex');
+    }
+
+    // Agregar evento para cerrar el modal al hacer clic en los botones
+    document.querySelectorAll('[data-modal-hide]').forEach(button => {
+        button.addEventListener('click', ocultarModal);
+    });
+
 </script>
 
 
@@ -827,6 +899,31 @@ document.getElementById('confirm-delete').addEventListener('click', function() {
 
 
 
+<button data-modal-target="popup-modal_max" data-modal-toggle="popup-modal_max" class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">
+    Toggle modal
+</button>
+
+<div id="popup-modal_max" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="popup-modal_max">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Se ha alcanzado la capacidad máxima del estacionamiento.</h3>
+                <button data-modal-hide="popup-modal_max" type="button" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 
