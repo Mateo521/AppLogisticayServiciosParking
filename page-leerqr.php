@@ -90,11 +90,13 @@ function get_estacionamiento_name($estacionamiento_id)
 
 
 <div class="flex flex-wrap gap-5 p-2 justify-center">
+<form id="form1" class="flex items-center max-w-xl mx-auto md:flex-nowrap flex-wrap gap-4 w-full" method="post"
+action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
 <?php if ($user_role !== 'author'): ?>
 
     
     <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown"
-        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        class="text-white mx-4 md:min-w-max w-full  bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
         type="button" <?php echo $user_role === 'author' ? 'disabled' : ''; ?>>
         <?php echo $selected_estacionamiento_name ? $selected_estacionamiento_name : 'Seleccione la opción...'; ?>
         <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
@@ -130,8 +132,7 @@ function get_estacionamiento_name($estacionamiento_id)
                             <?php endif; ?>
 
 
-        <form id="form1" class="flex items-center max-w-sm mx-auto" method="post"
-            action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+ 
             <label for="simple-search" class="sr-only">Search</label>
             <div class="relative w-full">
                 <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
@@ -142,7 +143,7 @@ function get_estacionamiento_name($estacionamiento_id)
                     </svg>
                 </div>
                 <input type="text" id="text" readonly
-                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    class="bg-gray-50 border border-gray-300 min-w-max text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                     placeholder="Categorías..." required />
                 <input type="hidden" id="categoria_index" name="categoria_index" value="">
                 <input type="hidden" id="estacionamiento_index" name="estacionamiento_index" value="<?php echo esc_attr($selected_estacionamiento); ?>">
@@ -151,15 +152,15 @@ function get_estacionamiento_name($estacionamiento_id)
                 <input type="hidden" name="action" value="insert_ingreso">
 
             </div>
-            <div>
+            <div class="flex justify-center w-full">
 
                 <button id="ingreso-button" type="submit"
                     class="p-2.5 ms-2 text-sm font-medium text-white bg-blue-700 rounded-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 hidden">
-                    <span>Ingreso</span>
+                    <span>Ingresar</span>
                 </button>
 
                 <button id="esperando-button" disabled type="button"
-                    class="text-white mx-3 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 inline-flex items-center">
+                    class="text-white  bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 inline-flex items-center">
                     <svg aria-hidden="true" role="status" class="inline w-4 h-4 me-3 text-white animate-spin"
                         viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
@@ -194,20 +195,20 @@ function get_estacionamiento_name($estacionamiento_id)
 <div class="flex justify-center" style="padding:35px 0 0;">
 
 
-    <form id="form2" class="flex items-center max-w-sm mx-auto" method="post"
+    <form id="form2" class="flex items-center  max-w-sm mx-auto w-full justify-center" method="post"
         action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
         <input type="hidden" id="categoria_index2" name="categoria_index2" value="">
         <input type="hidden" id="estacionamiento_index2" name="estacionamiento_index2" value="">
         <input type="hidden" name="action" value="delete_oldest_ingreso">
         <button id="delete-oldest-button" type="submit"
             class="p-2.5 text-sm font-medium bg-white rounded-lg border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
-            <span>Eliminar Más Antiguo</span>
+            <span>Egresar</span>
         </button>
 
 
 
         <button id="esperando-egreso-button" disabled type="button"
-            class="py-2.5 px-5 me-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center">
+            class="py-2.5 px-5  text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center">
             <svg aria-hidden="true" role="status"
                 class="inline w-4 h-4 me-3 text-gray-200 animate-spin dark:text-gray-600" viewBox="0 0 100 101"
                 fill="none" xmlns="http://www.w3.org/2000/svg">
